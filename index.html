@@ -191,7 +191,7 @@
     </div>
     <div class="filter-tabs">
       <button class="filter-btn active" onclick="filterReports('all', this)">전체</button>
-      <button class="filter-btn" onclick="filterReports('morning', this)">모닝 (07:00)</button>
+      <button class="filter-btn" onclick="filterReports('morning', this)">개장 (07:00)</button>
       <button class="filter-btn" onclick="filterReports('evening', this)">마감 (19:00)</button>
     </div>
     <div class="report-list" id="reportList"></div>
@@ -266,7 +266,7 @@
           <div class="item-top">
             <span class="item-date">${dateLabel}</span>
             <span class="item-session ${item.session === 'morning' ? 'session-morning' : 'session-evening'}">
-              ${item.session === 'morning' ? '모닝' : '마감'}
+              ${item.session === 'morning' ? '개장' : '마감'}
             </span>
           </div>
           <div class="item-title">${cleanTitle}</div>

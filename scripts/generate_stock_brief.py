@@ -481,7 +481,7 @@ def render_html(data, session, now_kst):
           </tr>"""
 
     session_class = "morning" if session == 'morning' else "evening"
-    session_badge = "모닝 (07:00)" if session == 'morning' else "마감 (19:00)"
+    session_badge = "개장 (07:00)" if session == 'morning' else "마감 (19:00)"
 
     html = tpl.replace('{{REPORT_TITLE}}', data.get('reportTitle', ''))
     html = html.replace('{{SESSION_CLASS}}', session_class)
