@@ -304,21 +304,24 @@ def render_html(data, session, now_kst):
         sig_cls = "sig-up" if ind['signalDir'] == 'up' else ("sig-down" if ind['signalDir'] == 'down' else "sig-neutral")
         name_str = ind['name']
         
-        # Audit status styling: 신규(Green), 유지(Blue), 퇴출(Muted/Dimmed)
+        # Audit status styling: Non-directional colors (Purple=신규, Amber=유지, Dashed/Dimmed=퇴출)
+        # This preserves Red/Blue exclusively for Up/Down market direction!
         card_style = "background:var(--card-bg); border:1px solid var(--card-border);"
+        title_extra = ""
         if '[신규]' in name_str:
-            card_style = "background:rgba(16, 185, 129, 0.14); border:1px solid #10b981;"
+            card_style = "background:rgba(168, 85, 247, 0.12); border:1px solid #a855f7;"
         elif '[유지]' in name_str:
-            card_style = "background:rgba(59, 130, 246, 0.12); border:1px solid #3b82f6;"
+            card_style = "background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.55);"
         elif '[퇴출]' in name_str:
-            card_style = "background:rgba(100, 116, 139, 0.10); border:1px solid #475569; opacity:0.72;"
+            card_style = "background:rgba(30, 41, 59, 0.4); border:1px dashed #475569; opacity:0.65;"
+            title_extra = "text-decoration:line-through; color:#94a3b8;"
 
         ind_html += f"""
           <div style="{card_style} border-radius:12px; padding:12px 14px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
               <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
                 <span class="weight-pill" style="flex-shrink:0;">{ind['weight']}</span>
-                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35;">{name_str}</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; {title_extra}">{name_str}</span>
               </div>
               <span class="sig-badge {sig_cls}" style="flex-shrink:0;">{ind['signalText']}</span>
             </div>
