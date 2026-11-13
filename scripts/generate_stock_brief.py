@@ -329,7 +329,7 @@ def render_html(data, session, now_kst):
             pop_txt = f"{re.sub(r'^\d+\.\s*', '', ind['name'])} ({w_val}% · {ind['signalText']})"
             safe_pop = pop_txt.replace("'", "\\'")
             
-            ind_slices.append(f'<path d="{d_path}" fill="{seg_col}" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip(\'{safe_pop}\')" />')
+            ind_slices.append(f'<path d="{d_path}" fill="{seg_col}" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip(\'{safe_pop}\', {idx})" />')
             
             # Percent inside slice
             mid_rad = math.radians(start_deg + sweep / 2.0)
@@ -339,7 +339,7 @@ def render_html(data, session, now_kst):
             start_deg = end_deg
 
             ind_legends.append(f'''
-              <div onclick="showDonutTip('{safe_pop}')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+              <div onclick="showDonutTip('{safe_pop}', {idx})" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
                 <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
                   <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:{seg_col}; flex-shrink:0;"></span>
                   <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{short_kw}</span>
@@ -438,7 +438,7 @@ def render_html(data, session, now_kst):
                 break
 
         stocks_html += f"""
-      <div class="stock-card" style="background: {brand_col}38; border: 1px solid {brand_col};" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
+      <div class="stock-card" data-dir="{s['direction']}" style="background: {brand_col}38; border: 1px solid {brand_col};" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">{s['name']}</span>
           <span class="stock-chg {chg_cls}">{s['change']}</span>
@@ -468,16 +468,22 @@ def render_html(data, session, now_kst):
 
     chart_svg = render_timeline_svg(history)
 
+    def fmt_audit_cell(val_str):
+        parts = [p.strip() for p in str(val_str).split('/')]
+        if len(parts) >= 2:
+            return f'<div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 {parts[0]}</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 {parts[1]}</div>'
+        return val_str
+
     audit_html = ""
     for h in reversed(history):
         audit_html += f"""
-          <tr>
+          <tr data-res="{h['result']}">
             <td style="font-weight:700; white-space:nowrap;">{h['date']}</td>
-            <td>{h['kospi']}</td>
-            <td>{h['samsung']}</td>
-            <td>{h['skhynix']}</td>
+            <td>{fmt_audit_cell(h['kospi'])}</td>
+            <td>{fmt_audit_cell(h['samsung'])}</td>
+            <td>{fmt_audit_cell(h['skhynix'])}</td>
             <td style="text-align:center;" class="eval-circle">{h['result']}</td>
-            <td style="color:#94a3b8; font-size:0.82rem;">{h['reason']}</td>
+            <td style="color:#94a3b8; font-size:0.82rem; min-width:220px;">{h['reason']}</td>
           </tr>"""
 
     session_class = "morning" if session == 'morning' else "evening"

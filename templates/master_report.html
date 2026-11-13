@@ -455,6 +455,11 @@
     <!-- 13 Core Stocks Grid -->
     <div class="section-title">
       <div>13개 관심 종목</div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem;" onclick="filterStocks('all', this)">전체</button>
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#ef4444; color:#f87171;" onclick="filterStocks('up', this)">상승 ▲</button>
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#3b82f6; color:#60a5fa;" onclick="filterStocks('down', this)">하락 ▼</button>
+      </div>
     </div>
     <div class="stocks-grid" id="stocksGrid">
       {{STOCKS_CARDS_HTML}}
@@ -501,27 +506,32 @@
 
   <!-- Raw Data Modal for Audit History -->
   <div class="modal-backdrop" id="rawDataModal" onclick="closeRawDataModal()">
-    <div class="modal" style="max-width:760px;" onclick="event.stopPropagation()">
+    <div class="modal" style="max-width:1080px; width:95vw;" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div>
-          <h3 style="font-size:1.15rem; color:#fff;">최근 1개월 누적 예측 로그</h3>
+          <h3 style="font-size:1.15rem; color:#fff;">최근 1개월 누적 마감 로그</h3>
           <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">엄격한 이진 판정(⭕/❌) 상세 로그</div>
         </div>
-        <button class="close-btn" onclick="closeRawDataModal()">✕</button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem;" onclick="filterAuditRows('all')">전체</button>
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#10b981; color:#34d399;" onclick="filterAuditRows('⭕')">⭕ 적중</button>
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#ef4444; color:#f87171;" onclick="filterAuditRows('❌')">❌ 실패</button>
+          <button class="close-btn" onclick="closeRawDataModal()">✕</button>
+        </div>
       </div>
-      <div class="indicators-table-wrap" style="max-height:60vh; margin-bottom:0;">
+      <div class="indicators-table-wrap" style="max-height:68vh; margin-bottom:0;">
         <table class="data-table">
           <thead>
             <tr>
               <th>일자</th>
-              <th>코스피 (예측/실제)</th>
-              <th>삼성전자 (예측/실제)</th>
-              <th>SK하이닉스 (예측/실제)</th>
+              <th>코스피 (예상 / 실제)</th>
+              <th>삼성전자 (예상 / 실제)</th>
+              <th>SK하이닉스 (예상 / 실제)</th>
               <th style="text-align:center;">판정</th>
               <th>핵심 결과 및 오차 사유</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="auditTableBody">
             {{AUDIT_ROWS_HTML}}
           </tbody>
         </table>
@@ -566,12 +576,38 @@
         if (hl) hl.setAttribute('fill', 'rgba(251, 191, 36, 0.16)');
       }
     }
-    function showDonutTip(text) {
+    function showDonutTip(text, idx) {
       const bar = document.getElementById('donutTipBar');
       if (bar) {
         bar.textContent = text;
         bar.style.display = 'block';
       }
+      if (idx) {
+        const card = document.getElementById('ind-' + idx);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.boxShadow = '0 0 0 2px #fbbf24';
+          setTimeout(() => { card.style.boxShadow = 'none'; }, 1600);
+        }
+      }
+    }
+    function filterStocks(dir) {
+      document.querySelectorAll('#stocksGrid .stock-card').forEach(el => {
+        if (dir === 'all' || el.dataset.dir === dir) {
+          el.style.display = '';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    }
+    function filterAuditRows(res) {
+      document.querySelectorAll('#auditTableBody tr').forEach(tr => {
+        if (res === 'all' || tr.dataset.res === res) {
+          tr.style.display = '';
+        } else {
+          tr.style.display = 'none';
+        }
+      });
     }
   </script>
 </body>
