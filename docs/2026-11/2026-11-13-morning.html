@@ -540,6 +540,18 @@
     <div class="section-title">
       <div>⚖️ 6대 액티브 지표</div>
     </div>
+    
+    <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700; margin-bottom:6px;">
+        <span style="color:#f87171;">▲ 상방 압력 70%</span>
+        <span style="color:#cbd5e1;">가중치 100% 점유율</span>
+        <span style="color:#60a5fa;">▼ 하방 압력 30%</span>
+      </div>
+      <div style="display:flex; height:24px; border-radius:6px; overflow:hidden; background:#1e293b;">
+        <div style="width:20%; background:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="엔비디아 젠슨 황 전격 사임 충격 (20%)">20%</div><div style="width:10%; background:#3b82f6; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="美 국채 10년물 금리 5.1% 돌파 (10%)">10%</div><div style="width:20%; background:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="기관 금융투자 옵션만기 매물 일단락 (20%)">20%</div><div style="width:20%; background:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="외국인 3거래일 연속 순매수 기조 (20%)">20%</div><div style="width:20%; background:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="삼성전자 20만 전자 수성 및 밸류 지지 (20%)">20%</div><div style="width:10%; background:#ef4444; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="원/달러 환율 4일 연속 하락 안정 (10%)">10%</div>
+      </div>
+    </div>
+    
     <div class="indicators-table-wrap">
       <table class="data-table">
         <thead>
@@ -598,7 +610,7 @@
     </div>
     <div class="stocks-grid" id="stocksGrid">
       
-      <div class="stock-card" style="border-left: 4px solid #2563eb;" onclick="openStockModal('삼성전자 (005930)', '208,000원 (+0.97%)', '젠슨 황 퇴진으로 인한 엔비디아 의존도 탈피 및 브로드컴·AMD 협력 부각 속에 안정적인 20만 원 선 안착 유력', 'https://kr.investing.com/news/stock-market-news/article-2171978')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #2563eb2E 0%, #111827 100%); border: 1px solid #2563eb80;" onclick="openStockModal('삼성전자 (005930)', '208,000원 (+0.97%)', '젠슨 황 퇴진으로 인한 엔비디아 의존도 탈피 및 브로드컴·AMD 협력 부각 속에 안정적인 20만 원 선 안착 유력', 'https://kr.investing.com/news/stock-market-news/article-2171978')">
         <div class="stock-header">
           <span class="stock-name">삼성전자 (005930)</span>
           <span class="stock-chg chg-up">+0.97%</span>
@@ -606,7 +618,7 @@
         <div class="stock-sub">208,000원</div>
         <div class="stock-snippet">젠슨 황 퇴진으로 인한 엔비디아 의존도 탈피 및 브로드컴·AMD 협력 부각 속에 안정적인 20만 원 선 안착 유력</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #EA002C;" onclick="openStockModal('SK하이닉스 (000660)', '1,262,000원 (-1.17%)', '단기 투자심리 위축으로 1~2%대 하락 출발 예상되나, 글로벌 빅테크향 HBM3E·HBM4 물량 유지로 124만 원대 반발 매수 기대', 'https://m.finance.daum.net/quotes/A000660/home')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #EA002C2E 0%, #111827 100%); border: 1px solid #EA002C80;" onclick="openStockModal('SK하이닉스 (000660)', '1,262,000원 (-1.17%)', '단기 투자심리 위축으로 1~2%대 하락 출발 예상되나, 글로벌 빅테크향 HBM3E·HBM4 물량 유지로 124만 원대 반발 매수 기대', 'https://m.finance.daum.net/quotes/A000660/home')">
         <div class="stock-header">
           <span class="stock-name">SK하이닉스 (000660)</span>
           <span class="stock-chg chg-down">-1.17%</span>
@@ -614,7 +626,7 @@
         <div class="stock-sub">1,262,000원</div>
         <div class="stock-snippet">단기 투자심리 위축으로 1~2%대 하락 출발 예상되나, 글로벌 빅테크향 HBM3E·HBM4 물량 유지로 124만 원대 반발 매수 기대</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #EA002C;" onclick="openStockModal('SK하이닉스 ADR (SKHY)', '$145.10 (-2.48%)', '뉴욕 시장에서 젠슨 황 사임 충격을 선반영하며 하락했으나 시간외에서는 낙폭 진정', 'https://kr.investing.com/news/stock-market-news/article-93CH-2156428')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #EA002C2E 0%, #111827 100%); border: 1px solid #EA002C80;" onclick="openStockModal('SK하이닉스 ADR (SKHY)', '$145.10 (-2.48%)', '뉴욕 시장에서 젠슨 황 사임 충격을 선반영하며 하락했으나 시간외에서는 낙폭 진정', 'https://kr.investing.com/news/stock-market-news/article-93CH-2156428')">
         <div class="stock-header">
           <span class="stock-name">SK하이닉스 ADR (SKHY)</span>
           <span class="stock-chg chg-down">-2.48%</span>
@@ -622,7 +634,7 @@
         <div class="stock-sub">$145.10</div>
         <div class="stock-snippet">뉴욕 시장에서 젠슨 황 사임 충격을 선반영하며 하락했으나 시간외에서는 낙폭 진정</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #76B900;" onclick="openStockModal('엔비디아 (NVDA)', '$165.40 (-4.30%)', '젠슨 황 CEO 공식 사임 및 콜레트 크레스 CFO 임시 경영 체제 전환으로 시총 4조 달러 및 170달러 선 붕괴', 'https://www.yna.co.kr/view/AKR20261113012051072')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #76B9002E 0%, #111827 100%); border: 1px solid #76B90080;" onclick="openStockModal('엔비디아 (NVDA)', '$165.40 (-4.30%)', '젠슨 황 CEO 공식 사임 및 콜레트 크레스 CFO 임시 경영 체제 전환으로 시총 4조 달러 및 170달러 선 붕괴', 'https://www.yna.co.kr/view/AKR20261113012051072')">
         <div class="stock-header">
           <span class="stock-name">엔비디아 (NVDA)</span>
           <span class="stock-chg chg-down">-4.30%</span>
@@ -630,7 +642,7 @@
         <div class="stock-sub">$165.40</div>
         <div class="stock-snippet">젠슨 황 CEO 공식 사임 및 콜레트 크레스 CFO 임시 경영 체제 전환으로 시총 4조 달러 및 170달러 선 붕괴</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #E82127;" onclick="openStockModal('테슬라 (TSLA)', '$382.10 (-0.70%)', '기술주 전반의 리더십 불안 속에 강보합권에서 약보합으로 전환 마감', 'https://www.infostockdaily.co.kr/news/articleView.html?idxno=218913')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #E821272E 0%, #111827 100%); border: 1px solid #E8212780;" onclick="openStockModal('테슬라 (TSLA)', '$382.10 (-0.70%)', '기술주 전반의 리더십 불안 속에 강보합권에서 약보합으로 전환 마감', 'https://www.infostockdaily.co.kr/news/articleView.html?idxno=218913')">
         <div class="stock-header">
           <span class="stock-name">테슬라 (TSLA)</span>
           <span class="stock-chg chg-down">-0.70%</span>
@@ -638,7 +650,7 @@
         <div class="stock-sub">$382.10</div>
         <div class="stock-snippet">기술주 전반의 리더십 불안 속에 강보합권에서 약보합으로 전환 마감</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #4285F4;" onclick="openStockModal('알파벳 A (GOOGL)', '$288.20 (-0.41%)', '자체 AI 칩 텐서(TPU) 생태계 강화 기대감이 엔비디아 충격을 일부 상쇄하며 소폭 하락', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #4285F42E 0%, #111827 100%); border: 1px solid #4285F480;" onclick="openStockModal('알파벳 A (GOOGL)', '$288.20 (-0.41%)', '자체 AI 칩 텐서(TPU) 생태계 강화 기대감이 엔비디아 충격을 일부 상쇄하며 소폭 하락', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
         <div class="stock-header">
           <span class="stock-name">알파벳 A (GOOGL)</span>
           <span class="stock-chg chg-down">-0.41%</span>
@@ -646,7 +658,7 @@
         <div class="stock-sub">$288.20</div>
         <div class="stock-snippet">자체 AI 칩 텐서(TPU) 생태계 강화 기대감이 엔비디아 충격을 일부 상쇄하며 소폭 하락</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #0668E1;" onclick="openStockModal('메타 플랫폼스 (META)', '$698.50 (-0.38%)', '700달러 선 문턱에서 시장 전반의 긴축 경계감에 밀려 약보합세', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #0668E12E 0%, #111827 100%); border: 1px solid #0668E180;" onclick="openStockModal('메타 플랫폼스 (META)', '$698.50 (-0.38%)', '700달러 선 문턱에서 시장 전반의 긴축 경계감에 밀려 약보합세', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
         <div class="stock-header">
           <span class="stock-name">메타 플랫폼스 (META)</span>
           <span class="stock-chg chg-down">-0.38%</span>
@@ -654,7 +666,7 @@
         <div class="stock-sub">$698.50</div>
         <div class="stock-snippet">700달러 선 문턱에서 시장 전반의 긴축 경계감에 밀려 약보합세</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #FF9900;" onclick="openStockModal('아마존 (AMZN)', '$270.90 (-0.44%)', 'AWS 클라우드 자체 AI 인프라 확대 모멘텀 속에 270달러 선 방어', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #FF99002E 0%, #111827 100%); border: 1px solid #FF990080;" onclick="openStockModal('아마존 (AMZN)', '$270.90 (-0.44%)', 'AWS 클라우드 자체 AI 인프라 확대 모멘텀 속에 270달러 선 방어', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
         <div class="stock-header">
           <span class="stock-name">아마존 (AMZN)</span>
           <span class="stock-chg chg-down">-0.44%</span>
@@ -662,7 +674,7 @@
         <div class="stock-sub">$270.90</div>
         <div class="stock-snippet">AWS 클라우드 자체 AI 인프라 확대 모멘텀 속에 270달러 선 방어</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #0077C8;" onclick="openStockModal('마이크론 테크놀로지 (MU)', '$739.50 (-1.59%)', '전날 6%대 급등 이후 엔비디아 노이즈와 금리 상승 부담으로 1%대 숨고르기 조정', 'https://www.infostockdaily.co.kr/news/articleView.html?idxno=218913')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #0077C82E 0%, #111827 100%); border: 1px solid #0077C880;" onclick="openStockModal('마이크론 테크놀로지 (MU)', '$739.50 (-1.59%)', '전날 6%대 급등 이후 엔비디아 노이즈와 금리 상승 부담으로 1%대 숨고르기 조정', 'https://www.infostockdaily.co.kr/news/articleView.html?idxno=218913')">
         <div class="stock-header">
           <span class="stock-name">마이크론 테크놀로지 (MU)</span>
           <span class="stock-chg chg-down">-1.59%</span>
@@ -670,7 +682,7 @@
         <div class="stock-sub">$739.50</div>
         <div class="stock-snippet">전날 6%대 급등 이후 엔비디아 노이즈와 금리 상승 부담으로 1%대 숨고르기 조정</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #94a3b8;" onclick="openStockModal('팔란티어 (PLTR)', '$160.80 (-0.80%)', '160달러 선을 지켜내며 엔터프라이즈 AI 소프트웨어 수요 건재함 과시', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #94a3b82E 0%, #111827 100%); border: 1px solid #94a3b880;" onclick="openStockModal('팔란티어 (PLTR)', '$160.80 (-0.80%)', '160달러 선을 지켜내며 엔터프라이즈 AI 소프트웨어 수요 건재함 과시', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
         <div class="stock-header">
           <span class="stock-name">팔란티어 (PLTR)</span>
           <span class="stock-chg chg-down">-0.80%</span>
@@ -678,7 +690,7 @@
         <div class="stock-sub">$160.80</div>
         <div class="stock-snippet">160달러 선을 지켜내며 엔터프라이즈 AI 소프트웨어 수요 건재함 과시</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #006B54;" onclick="openStockModal('GE 버노바 (GEV)', '$764.50 (-0.61%)', '데이터센터 전력 공급망 확충 기조 속에서 약보합권 안정적 매물 소화', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #006B542E 0%, #111827 100%); border: 1px solid #006B5480;" onclick="openStockModal('GE 버노바 (GEV)', '$764.50 (-0.61%)', '데이터센터 전력 공급망 확충 기조 속에서 약보합권 안정적 매물 소화', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
         <div class="stock-header">
           <span class="stock-name">GE 버노바 (GEV)</span>
           <span class="stock-chg chg-down">-0.61%</span>
@@ -686,7 +698,7 @@
         <div class="stock-sub">$764.50</div>
         <div class="stock-snippet">데이터센터 전력 공급망 확충 기조 속에서 약보합권 안정적 매물 소화</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #10B981;" onclick="openStockModal('블룸에너지 (BE)', '$26.20 (-1.50%)', '구글 702MW 전력 파트너십 급등 후 단기 차익 실현 매물로 소폭 하락', 'https://www.benzinga.com/trading-ideas/movers/26/11/62973002/bloom-energy-scores-major-role-in-googles-702-megawatt-power-project')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #10B9812E 0%, #111827 100%); border: 1px solid #10B98180;" onclick="openStockModal('블룸에너지 (BE)', '$26.20 (-1.50%)', '구글 702MW 전력 파트너십 급등 후 단기 차익 실현 매물로 소폭 하락', 'https://www.benzinga.com/trading-ideas/movers/26/11/62973002/bloom-energy-scores-major-role-in-googles-702-megawatt-power-project')">
         <div class="stock-header">
           <span class="stock-name">블룸에너지 (BE)</span>
           <span class="stock-chg chg-down">-1.50%</span>
@@ -694,7 +706,7 @@
         <div class="stock-sub">$26.20</div>
         <div class="stock-snippet">구글 702MW 전력 파트너십 급등 후 단기 차익 실현 매물로 소폭 하락</div>
       </div>
-      <div class="stock-card" style="border-left: 4px solid #005696;" onclick="openStockModal('웨스턴 디지털 (WDC)', '$382.40 (-1.24%)', '반도체 섹터 전반의 숨고르기 흐름 속에 380달러 선 수성', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+      <div class="stock-card" style="background: linear-gradient(135deg, #0056962E 0%, #111827 100%); border: 1px solid #00569680;" onclick="openStockModal('웨스턴 디지털 (WDC)', '$382.40 (-1.24%)', '반도체 섹터 전반의 숨고르기 흐름 속에 380달러 선 수성', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
         <div class="stock-header">
           <span class="stock-name">웨스턴 디지털 (WDC)</span>
           <span class="stock-chg chg-down">-1.24%</span>

@@ -250,6 +250,40 @@ def render_html(data, session, now_kst):
         <div class="target-desc">{t['desc']}</div>
       </div>"""
 
+    # Indicators Stacked Share Bar + Sentiment Meter
+    ind_bar_segments = []
+    up_weight = 0
+    down_weight = 0
+    for ind in data.get('indicators', []):
+        w_match = re.search(r'(\d+)', str(ind.get('weight', '0')))
+        w_val = int(w_match.group(1)) if w_match else 0
+        if w_val <= 0:
+            continue
+        s_dir = ind.get('signalDir', 'neutral')
+        if s_dir == 'up':
+            up_weight += w_val
+            seg_col = '#ef4444' # Korea market up = Red
+        elif s_dir == 'down':
+            down_weight += w_val
+            seg_col = '#3b82f6' # Korea market down = Blue
+        else:
+            seg_col = '#64748b'
+        short_name = ind['name'].split('.')[0].strip()[:8]
+        ind_bar_segments.append(f'<div style="width:{w_val}%; background:{seg_col}; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="{ind["name"]} ({w_val}%)">{w_val}%</div>')
+
+    ind_bar_html = f"""
+    <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+      <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700; margin-bottom:6px;">
+        <span style="color:#f87171;">▲ 상방 압력 {up_weight}%</span>
+        <span style="color:#cbd5e1;">가중치 100% 점유율</span>
+        <span style="color:#60a5fa;">▼ 하방 압력 {down_weight}%</span>
+      </div>
+      <div style="display:flex; height:24px; border-radius:6px; overflow:hidden; background:#1e293b;">
+        {''.join(ind_bar_segments)}
+      </div>
+    </div>
+    """ if ind_bar_segments else ""
+
     # Indicators Rows
     ind_html = ""
     for ind in data.get('indicators', []):
@@ -306,7 +340,7 @@ def render_html(data, session, now_kst):
                 break
 
         stocks_html += f"""
-      <div class="stock-card" style="border-left: 4px solid {brand_col};" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
+      <div class="stock-card" style="background: linear-gradient(135deg, {brand_col}2E 0%, #111827 100%); border: 1px solid {brand_col}80;" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
         <div class="stock-header">
           <span class="stock-name">{s['name']}</span>
           <span class="stock-chg {chg_cls}">{s['change']}</span>
@@ -358,6 +392,7 @@ def render_html(data, session, now_kst):
     html = html.replace('{{EXECUTIVE_SUMMARY}}', data.get('executiveSummary', ''))
     html = html.replace('{{MACRO_CARDS_HTML}}', macro_html)
     html = html.replace('{{TARGET_CARDS_HTML}}', target_html)
+    html = html.replace('{{INDICATORS_BAR_HTML}}', ind_bar_html)
     html = html.replace('{{INDICATORS_ROWS_HTML}}', ind_html)
     html = html.replace('{{STOCKS_CARDS_HTML}}', stocks_html)
     html = html.replace('{{AUDIT_TOTAL_COUNT}}', str(total_cnt))
