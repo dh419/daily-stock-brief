@@ -298,16 +298,27 @@ def render_html(data, session, now_kst):
     </div>
     """ if ind_bar_segments else ""
 
-    # Indicators Mobile-friendly Cards
+    # Indicators Mobile-friendly Cards with Audit Status Color Coding
     ind_html = ""
     for ind in data.get('indicators', []):
         sig_cls = "sig-up" if ind['signalDir'] == 'up' else ("sig-down" if ind['signalDir'] == 'down' else "sig-neutral")
+        name_str = ind['name']
+        
+        # Audit status styling: 신규(Green), 유지(Blue), 퇴출(Muted/Dimmed)
+        card_style = "background:var(--card-bg); border:1px solid var(--card-border);"
+        if '[신규]' in name_str:
+            card_style = "background:rgba(16, 185, 129, 0.14); border:1px solid #10b981;"
+        elif '[유지]' in name_str:
+            card_style = "background:rgba(59, 130, 246, 0.12); border:1px solid #3b82f6;"
+        elif '[퇴출]' in name_str:
+            card_style = "background:rgba(100, 116, 139, 0.10); border:1px solid #475569; opacity:0.72;"
+
         ind_html += f"""
-          <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px;">
+          <div style="{card_style} border-radius:12px; padding:12px 14px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
               <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
                 <span class="weight-pill" style="flex-shrink:0;">{ind['weight']}</span>
-                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35;">{ind['name']}</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35;">{name_str}</span>
               </div>
               <span class="sig-badge {sig_cls}" style="flex-shrink:0;">{ind['signalText']}</span>
             </div>
