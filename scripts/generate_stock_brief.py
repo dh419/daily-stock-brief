@@ -24,125 +24,193 @@ THINKING_BUDGET = int(os.environ.get('THINKING_BUDGET', '2048'))
 
 KST = timezone(timedelta(hours=9))
 
-def parse_percent(val_str):
-    if not val_str:
+def extract_range_from_str(s):
+    """Extract (low, high) percentages from strings like '-0.8% ~ +0.6%' or '+1.2%~+2.8%'"""
+    if not s:
+        return None, None
+    matches = re.findall(r'([+-]?\d+(?:\.\d+)?)%', str(s))
+    if len(matches) >= 2:
+        v1, v2 = float(matches[0]), float(matches[1])
+        return min(v1, v2), max(v1, v2)
+    return None, None
+
+def extract_single_pct(s):
+    """Extract single percentage like '-0.98%' or '-3%대' -> -3.0"""
+    if not s:
         return None
-    m = re.search(r'([+-]?\d+(?:\.\d+)?)%', str(val_str))
+    m = re.search(r'([+-]?\d+(?:\.\d+)?)%', str(s))
     if m:
         return float(m.group(1))
     return None
 
-def parse_range(range_str):
-    if not range_str:
-        return None, None
-    matches = re.findall(r'([+-]?\d+(?:\.\d+)?)%', str(range_str))
-    if len(matches) >= 2:
-        return float(matches[0]), float(matches[1])
-    elif len(matches) == 1:
-        v = float(matches[0])
-        return v, v
-    return None, None
-
 def render_band_meter(t, session):
-    # Scale: -5.0% to +5.0% (center 0% at 50%)
-    # clamp helper
-    def to_percent_pos(val, min_v=-5.0, max_v=5.0):
+    """
+    Renders the horizontal target band meter with a fixed 0.0% center line (-5% to +5% scale).
+    - Morning: Shows predicted band only (from t['band']), no actual pin.
+    - Evening: Shows morning predicted band (from t['gap']) AND actual close pin (from t['band']).
+    """
+    def to_pct_pos(val, min_v=-5.0, max_v=5.0):
         if val is None:
             return None
         clamped = max(min_v, min(max_v, val))
         return ((clamped - min_v) / (max_v - min_v)) * 100.0
 
-    low_v, high_v = parse_range(t.get('band', ''))
-    if low_v is None:
-        low_v, high_v = parse_range(t.get('gap', ''))
+    if session == 'morning':
+        low_v, high_v = extract_range_from_str(t.get('band', ''))
+        actual_v = None
+        pred_label = t.get('band', '-')
+    else:
+        # Evening: morning prediction is in t['gap'], actual result is in t['band']
+        low_v, high_v = extract_range_from_str(t.get('gap', ''))
+        actual_v = extract_single_pct(t.get('band', ''))
+        pred_label = t.get('gap', '-').replace('오전예측:', '').strip()
 
-    actual_v = parse_percent(t.get('band', '')) if session == 'evening' else None
-    
-    # Calculate positions
     band_html = ""
     if low_v is not None and high_v is not None:
-        p_low = to_percent_pos(min(low_v, high_v))
-        p_high = to_percent_pos(max(low_v, high_v))
+        p_low = to_pct_pos(low_v)
+        p_high = to_pct_pos(high_v)
         width = max(2.0, p_high - p_low)
         band_html = f'<div class="meter-band" style="left:{p_low:.1f}%; width:{width:.1f}%;"></div>'
 
     actual_html = ""
     is_hit = False
     if actual_v is not None:
-        p_act = to_percent_pos(actual_v)
+        p_act = to_pct_pos(actual_v)
         if low_v is not None and high_v is not None and (low_v <= actual_v <= high_v):
             is_hit = True
         pin_class = "hit" if is_hit else "miss"
-        actual_html = f'<div class="meter-actual-pin {pin_class}" style="left:{p_act:.1f}%;" title="실제 종가: {actual_v:+.2f}%"></div>'
+        actual_html = f'<div class="meter-actual-pin {pin_class}" style="left:{p_act:.1f}%;" title="실제: {actual_v:+.2f}%"></div>'
+
+    status_right = '<span style="color:#94a3b8;">장중 진행 대기</span>'
+    if actual_v is not None:
+        status_right = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕ 적중" if is_hit else "❌ 이탈"})</span>'
 
     return f"""
       <div class="band-meter-wrap">
         <div class="meter-scale-header">
-          <span>-5.0% (하방)</span>
-          <span style="color:#e2e8f0; font-weight:800;">0.0% (기준)</span>
-          <span>+5.0% (상방)</span>
+          <span>-5.0%</span>
+          <span style="color:#e2e8f0; font-weight:800;">0.0%</span>
+          <span>+5.0%</span>
         </div>
         <div class="meter-track">
           <div class="axis-zero"></div>
-          <div class="axis-zero-label">0%</div>
           {band_html}
           {actual_html}
         </div>
         <div class="meter-legend">
-          <span style="color:#a5b4fc;">예상 밴드: {t.get('band', '-')}</span>
-          {f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕ 적중" if is_hit else "❌ 이탈"})</span>' if actual_v is not None else '<span style="color:#94a3b8;">장중 진행 대기</span>'}
+          <span style="color:#a5b4fc;">예측: {pred_label}</span>
+          {status_right}
         </div>
       </div>
     """
 
+def render_quant_section_chart(history, field_key, title, color_accent):
+    """
+    Renders a quantitative SVG range-bar + actual-dot chart for a single asset (kospi / samsung / skhynix).
+    Shows last 15 trading days with 0.0% horizontal baseline, predicted range bars, and actual close dots.
+    """
+    items = history[-15:]
+    if not items:
+        return ""
+
+    svg_w = 880
+    svg_h = 155
+    pad_l, pad_r = 44, 16
+    pad_t, pad_b = 20, 26
+    plot_w = svg_w - pad_l - pad_r
+    plot_h = svg_h - pad_t - pad_b
+
+    # Determine dynamic Y scale covering all data (at least -4% to +4%)
+    min_y, max_y = -4.0, 4.0
+    parsed_pts = []
+    for h in items:
+        raw = h.get(field_key, '')
+        parts = raw.split('/')
+        pred_str = parts[0].strip() if len(parts) > 0 else ''
+        act_str = parts[1].strip() if len(parts) > 1 else ''
+        p_low, p_high = extract_range_from_str(pred_str)
+        act_val = extract_single_pct(act_str)
+        
+        for v in (p_low, p_high, act_val):
+            if v is not None:
+                min_y = min(min_y, v - 0.8)
+                max_y = max(max_y, v + 0.8)
+        parsed_pts.append((h.get('date', '').split(' ')[0], p_low, p_high, act_val))
+
+    # Clamp extreme outliers nicely so chart stays readable (-11% to +8%)
+    min_y = max(-11.5, min_y)
+    max_y = min(8.5, max_y)
+
+    def y_pos(val):
+        clamped = max(min_y, min(max_y, val))
+        ratio = (clamped - min_y) / (max_y - min_y)
+        return pad_t + plot_h * (1.0 - ratio)
+
+    y_zero = y_pos(0.0)
+    step_x = plot_w / max(1, len(parsed_pts))
+
+    # Grid lines (-5%, 0%, +5%)
+    grid_html = []
+    for gv in [-5.0, 0.0, 5.0]:
+        if min_y <= gv <= max_y:
+            gy = y_pos(gv)
+            stroke = "#94a3b8" if gv == 0.0 else "#1e293b"
+            width = "1.5" if gv == 0.0 else "1"
+            dash = "" if gv == 0.0 else 'stroke-dasharray="3 3"'
+            label = "0.0%" if gv == 0.0 else f"{gv:+.0f}%"
+            lbl_col = "#f8fafc" if gv == 0.0 else "#64748b"
+            grid_html.append(f'<line x1="{pad_l}" y1="{gy:.1f}" x2="{svg_w - pad_r}" y2="{gy:.1f}" stroke="{stroke}" stroke-width="{width}" {dash} />')
+            grid_html.append(f'<text x="{pad_l - 6}" y="{gy + 3:.1f}" text-anchor="end" font-size="10" fill="{lbl_col}" font-family="monospace" font-weight="bold">{label}</text>')
+
+    bars_html = []
+    for idx, (d_lbl, p_low, p_high, act_val) in enumerate(parsed_pts):
+        cx = pad_l + step_x * (idx + 0.5)
+        
+        # Draw Predicted Band Bar
+        if p_low is not None and p_high is not None:
+            y_top = y_pos(p_high)
+            y_bot = y_pos(p_low)
+            bar_h = max(3.0, y_bot - y_top)
+            bars_html.append(f'<rect x="{cx - 9:.1f}" y="{y_top:.1f}" width="18" height="{bar_h:.1f}" rx="3" fill="{color_accent}" opacity="0.32" stroke="{color_accent}" stroke-width="1" />')
+
+        # Draw Actual Close Dot + Label
+        if act_val is not None:
+            ay = y_pos(act_val)
+            is_hit = (p_low is not None and p_high is not None and p_low <= act_val <= p_high)
+            dot_col = "#10b981" if is_hit else "#ef4444"
+            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="4.5" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.5" />')
+            # Value text above or below dot
+            txt_y = ay - 7 if act_val >= 0 else ay + 13
+            bars_html.append(f'<text x="{cx:.1f}" y="{txt_y:.1f}" text-anchor="middle" font-size="9" font-weight="bold" fill="{dot_col}" font-family="monospace">{act_val:+.1f}%</text>')
+
+        # X-axis date label
+        bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 6}" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="monospace">{d_lbl}</text>')
+
+    return f"""
+      <div style="margin-bottom:18px; background:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:12px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:0.92rem; font-weight:800; color:#fff;">{title}</span>
+          <span style="font-size:0.74rem; color:#94a3b8;">
+            <span style="display:inline-block; width:10px; height:10px; background:{color_accent}; opacity:0.5; border:1px solid {color_accent}; border-radius:2px; vertical-align:middle;"></span> 예측밴드 &nbsp;
+            <span style="color:#10b981;">●</span> 적중 &nbsp;
+            <span style="color:#ef4444;">●</span> 이탈
+          </span>
+        </div>
+        <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
+          {''.join(grid_html)}
+          {''.join(bars_html)}
+        </svg>
+      </div>
+    """
+
 def render_timeline_svg(history):
-    # Render interactive/clean SVG timeline of binary results
     if not history:
         return '<div style="color:var(--text-dim); text-align:center; padding:20px;">누적 기록이 없습니다.</div>'
     
-    # Show last 25 entries in chronological order (left to right)
-    items = history[-25:]
-    total = len(items)
-    
-    svg_w = 900
-    svg_h = 100
-    margin_x = 30
-    step_x = (svg_w - margin_x * 2) / max(1, total - 1) if total > 1 else 0
-    y_center = 45
-
-    nodes_html = []
-    lines_html = []
-    
-    # baseline
-    lines_html.append(f'<line x1="{margin_x}" y1="{y_center}" x2="{svg_w - margin_x}" y2="{y_center}" stroke="#334155" stroke-width="2" stroke-dasharray="4 4" />')
-    
-    for idx, h in enumerate(items):
-        cx = margin_x + idx * step_x
-        is_hit = h.get('result') == '⭕'
-        color = "#10b981" if is_hit else "#ef4444"
-        cy = y_center - 16 if is_hit else y_center + 16
-        
-        # Line to center
-        lines_html.append(f'<line x1="{cx:.1f}" y1="{y_center}" x2="{cx:.1f}" y2="{cy:.1f}" stroke="{color}" stroke-width="2" opacity="0.6" />')
-        
-        # Circle Node
-        symbol = "⭕" if is_hit else "❌"
-        date_short = h.get('date', '').split(' ')[0]
-        nodes_html.append(f"""
-          <g transform="translate({cx:.1f}, {cy:.1f})">
-            <circle r="12" fill="#111827" stroke="{color}" stroke-width="2.5" />
-            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="{color}">{symbol}</text>
-            <text text-anchor="middle" dy="{28 if is_hit else -20}" font-size="9" fill="#94a3b8" font-family="monospace">{date_short}</text>
-          </g>
-        """)
-
-    svg_content = f"""
-      <svg class="timeline-svg" viewBox="0 0 {svg_w} {svg_h}" preserveAspectRatio="xMidYMid meet">
-        {''.join(lines_html)}
-        {''.join(nodes_html)}
-      </svg>
-    """
-    return svg_content
+    c1 = render_quant_section_chart(history, 'kospi', '1️⃣ 코스피 (KOSPI) — 최근 15거래일 예측 밴드 vs 실제 등락률(%)', '#818cf8')
+    c2 = render_quant_section_chart(history, 'samsung', '2️⃣ 삼성전자 (005930) — 최근 15거래일 예측 밴드 vs 실제 등락률(%)', '#38bdf8')
+    c3 = render_quant_section_chart(history, 'skhynix', '3️⃣ SK하이닉스 (000660) — 최근 15거래일 예측 밴드 vs 실제 등락률(%)', '#c084fc')
+    return c1 + c2 + c3
 
 def render_html(data, session, now_kst):
     with open(MASTER_HTML_PATH, 'r', encoding='utf-8') as f:
@@ -213,7 +281,7 @@ def render_html(data, session, now_kst):
         today_entry = data['todayAudit']
         history = [h for h in history if h['date'] != today_entry['date']]
         history.append(today_entry)
-        history = history[-30:] # keep last 30
+        history = history[-30:]
         with open(AUDIT_HISTORY_PATH, 'w', encoding='utf-8') as f:
             json.dump(history, f, ensure_ascii=False, indent=2)
 
@@ -224,7 +292,6 @@ def render_html(data, session, now_kst):
 
     chart_svg = render_timeline_svg(history)
 
-    # Raw Data Table rows for popup modal
     audit_html = ""
     for h in reversed(history):
         audit_html += f"""
