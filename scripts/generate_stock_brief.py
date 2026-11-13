@@ -207,9 +207,9 @@ def render_timeline_svg(history):
     if not history:
         return '<div style="color:var(--text-dim); text-align:center; padding:20px;">누적 기록이 없습니다.</div>'
     
-    c1 = render_quant_section_chart(history, 'kospi', '1️⃣ 코스피 (KOSPI) — 최근 15거래일 예측 밴드 vs 실제 등락률(%)', '#818cf8')
-    c2 = render_quant_section_chart(history, 'samsung', '2️⃣ 삼성전자 (005930) — 최근 15거래일 예측 밴드 vs 실제 등락률(%)', '#38bdf8')
-    c3 = render_quant_section_chart(history, 'skhynix', '3️⃣ SK하이닉스 (000660) — 최근 15거래일 예측 밴드 vs 실제 등락률(%)', '#c084fc')
+    c1 = render_quant_section_chart(history, 'kospi', '1️⃣ 코스피 (KOSPI)', '#818cf8')
+    c2 = render_quant_section_chart(history, 'samsung', '2️⃣ 삼성전자 (005930)', '#38bdf8')
+    c3 = render_quant_section_chart(history, 'skhynix', '3️⃣ SK하이닉스 (000660)', '#c084fc')
     return c1 + c2 + c3
 
 def render_html(data, session, now_kst):
@@ -305,7 +305,7 @@ def render_html(data, session, now_kst):
           </tr>"""
 
     session_class = "morning" if session == 'morning' else "evening"
-    session_badge = "☀️ 오전 모닝 브리핑 (07:30)" if session == 'morning' else "🌙 오후 마감 분석 (18:00)"
+    session_badge = "☀️ 모닝 (07:30)" if session == 'morning' else "🌙 마감 (18:00)"
 
     html = tpl.replace('{{REPORT_TITLE}}', data.get('reportTitle', ''))
     html = html.replace('{{SESSION_CLASS}}', session_class)

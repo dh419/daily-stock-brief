@@ -425,7 +425,7 @@
 
     <!-- 3 Core Forecast Targets (with 0% Axis) -->
     <div class="section-title">
-      <div>🎯 핵심 3대 축 예상 밴드 vs 실제 결과 <span class="sub">(중앙 0% 기준선 시각화)</span></div>
+      <div>🎯 3대 축 예측 밴드</div>
     </div>
     <div class="target-grid">
       {{TARGET_CARDS_HTML}}
@@ -433,16 +433,16 @@
 
     <!-- 6 Active Indicators Matrix -->
     <div class="section-title">
-      <div>⚖️ 6대 다이나믹 액티브 베이스 지표 감사 <span class="sub">(설명력 부재 피처 퇴출 &amp; 신규 편입)</span></div>
+      <div>⚖️ 6대 액티브 지표</div>
     </div>
     <div class="indicators-table-wrap">
       <table class="data-table">
         <thead>
           <tr>
-            <th>선행 지표명</th>
-            <th>최신 확정 수치 및 시장 상태</th>
+            <th>지표</th>
+            <th>핵심 수치</th>
             <th>가중치</th>
-            <th>방향성 시그널</th>
+            <th>시그널</th>
           </tr>
         </thead>
         <tbody>
@@ -453,7 +453,7 @@
 
     <!-- 13 Core Stocks Grid -->
     <div class="section-title">
-      <div>📊 국내외 13개 핵심 관심 종목 전수 동향 <span class="sub">(카드 터치 시 상세 해설/출처 팝업)</span></div>
+      <div>📊 13개 관심 종목</div>
     </div>
     <div class="stocks-grid" id="stocksGrid">
       {{STOCKS_CARDS_HTML}}
@@ -461,8 +461,8 @@
 
     <!-- Cumulative Binary Evaluation Chart (Replaces Plain Table) -->
     <div class="section-title">
-      <div>📈 최근 1개월 누적 적중 추이 <span class="sub">(3개 전원 안착 ⭕ / 1개라도 이탈 ❌)</span></div>
-      <button class="btn-rawdata" onclick="openRawDataModal()">📋 로데이터(Raw Data) 보기</button>
+      <div>📈 누적 적중 추이</div>
+      <button class="btn-rawdata" onclick="openRawDataModal()">📋 로데이터</button>
     </div>
     <div class="chart-box">
       <div class="chart-header">
