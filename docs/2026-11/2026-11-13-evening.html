@@ -466,7 +466,7 @@
 
     <!-- 3 Core Forecast Targets (with 0% Axis) -->
     <div class="section-title">
-      <div>3대 축 예측 밴드</div>
+      <div>3대 축 시초·마감 밴드</div>
     </div>
     <div class="target-grid">
       
@@ -488,7 +488,7 @@
           <div class="meter-actual-pin miss" style="left:40.2%;" title="실제: -0.98%"></div>
         </div>
         <div class="meter-legend">
-          <span style="color:#c7d2fe;">예측: -0.8% ~ +0.6%</span>
+          <span style="color:#c7d2fe;">마감: -0.8% ~ +0.6%</span>
           <span style="color:#f87171; font-weight:800;">실제: -0.98% (❌)</span>
         </div>
       </div>
@@ -513,7 +513,7 @@
           <div class="meter-actual-pin miss" style="left:40.4%;" title="실제: -0.96%"></div>
         </div>
         <div class="meter-legend">
-          <span style="color:#c7d2fe;">예측: -0.8% ~ +1.5%</span>
+          <span style="color:#c7d2fe;">마감: -0.8% ~ +1.5%</span>
           <span style="color:#f87171; font-weight:800;">실제: -0.96% (❌)</span>
         </div>
       </div>
@@ -538,7 +538,7 @@
           <div class="meter-actual-pin miss" style="left:20.0%;" title="실제: -3.00%"></div>
         </div>
         <div class="meter-legend">
-          <span style="color:#c7d2fe;">예측: -2.5% ~ +1.0%</span>
+          <span style="color:#c7d2fe;">마감: -2.5% ~ +1.0%</span>
           <span style="color:#f87171; font-weight:800;">실제: -3.00% (❌)</span>
         </div>
       </div>
@@ -685,10 +685,15 @@
     <!-- 13 Core Stocks Grid -->
     <div class="section-title">
       <div>13개 관심 종목</div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem;" onclick="filterStocks('all')">전체</button>
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#ef4444; color:#f87171;" onclick="filterStocks('up')">상승 ▲</button>
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#3b82f6; color:#60a5fa;" onclick="filterStocks('down')">하락 ▼</button>
+      </div>
     </div>
     <div class="stocks-grid" id="stocksGrid">
       
-      <div class="stock-card" style="background: #2563eb38; border: 1px solid #2563eb;" onclick="openStockModal('삼성전자 (005930)', '206,000원 (-0.96% (-2,000원))', '장 초반 강세 후 오후 하락 전환했으나 외인이 114억 원 순매수를 유지하며 \'20만 전자\' 마지노선 수성', 'https://kr.investing.com/news/stock-market-news/article-2174560')">
+      <div class="stock-card" data-dir="down" style="background: #2563eb38; border: 1px solid #2563eb;" onclick="openStockModal('삼성전자 (005930)', '206,000원 (-0.96% (-2,000원))', '장 초반 강세 후 오후 하락 전환했으나 외인이 114억 원 순매수를 유지하며 \'20만 전자\' 마지노선 수성', 'https://kr.investing.com/news/stock-market-news/article-2174560')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">삼성전자 (005930)</span>
           <span class="stock-chg chg-down">-0.96% (-2,000원)</span>
@@ -696,7 +701,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">206,000원</div>
         <div class="stock-snippet" style="color:#e2e8f0;">장 초반 강세 후 오후 하락 전환했으나 외인이 114억 원 순매수를 유지하며 '20만 전자' 마지노선 수성</div>
       </div>
-      <div class="stock-card" style="background: #EA002C38; border: 1px solid #EA002C;" onclick="openStockModal('SK하이닉스 (000660)', '1,201,000~1,317,000원 (-3%대 급락)', '젠슨 황의 딥시크 158억$ 투자 및 블랙웰 우회 의혹으로 외인 순매도 1위(4,714억) 집중 폭격, 자사주 매입(기타법인 4,379억 매수)으로 120만 원 방어', 'https://kr.investing.com/equities/sk-hynix-inc-historical-data')">
+      <div class="stock-card" data-dir="down" style="background: #EA002C38; border: 1px solid #EA002C;" onclick="openStockModal('SK하이닉스 (000660)', '1,201,000~1,317,000원 (-3%대 급락)', '젠슨 황의 딥시크 158억$ 투자 및 블랙웰 우회 의혹으로 외인 순매도 1위(4,714억) 집중 폭격, 자사주 매입(기타법인 4,379억 매수)으로 120만 원 방어', 'https://kr.investing.com/equities/sk-hynix-inc-historical-data')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">SK하이닉스 (000660)</span>
           <span class="stock-chg chg-down">-3%대 급락</span>
@@ -704,7 +709,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">1,201,000~1,317,000원</div>
         <div class="stock-snippet" style="color:#e2e8f0;">젠슨 황의 딥시크 158억$ 투자 및 블랙웰 우회 의혹으로 외인 순매도 1위(4,714억) 집중 폭격, 자사주 매입(기타법인 4,379억 매수)으로 120만 원 방어</div>
       </div>
-      <div class="stock-card" style="background: #EA002C38; border: 1px solid #EA002C;" onclick="openStockModal('SK하이닉스 ADR (SKHY)', '뉴욕 본장 대기 (변동성 경계)', '국내 본주 3%대 급락 및 엔비디아 의혹 여파 속 뉴욕 프리마켓 수급 공방', 'https://kr.investing.com/news/stock-market-news/article-93CH-2156428')">
+      <div class="stock-card" data-dir="down" style="background: #EA002C38; border: 1px solid #EA002C;" onclick="openStockModal('SK하이닉스 ADR (SKHY)', '뉴욕 본장 대기 (변동성 경계)', '국내 본주 3%대 급락 및 엔비디아 의혹 여파 속 뉴욕 프리마켓 수급 공방', 'https://kr.investing.com/news/stock-market-news/article-93CH-2156428')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">SK하이닉스 ADR (SKHY)</span>
           <span class="stock-chg chg-down">변동성 경계</span>
@@ -712,7 +717,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">뉴욕 본장 대기</div>
         <div class="stock-snippet" style="color:#e2e8f0;">국내 본주 3%대 급락 및 엔비디아 의혹 여파 속 뉴욕 프리마켓 수급 공방</div>
       </div>
-      <div class="stock-card" style="background: #76B90038; border: 1px solid #76B900;" onclick="openStockModal('엔비디아 (NVDA)', '11/17 실적 대기 (의혹 확산)', '젠슨 황 사임 후폭풍에 더해 중국 딥시크 블랙웰 우회 공급 의혹까지 제기되며 17일 실적 발표 앞두고 HBM 공급망 전반 긴장 고조', 'https://www.yna.co.kr/view/AKR20261113040151008')">
+      <div class="stock-card" data-dir="down" style="background: #76B90038; border: 1px solid #76B900;" onclick="openStockModal('엔비디아 (NVDA)', '11/17 실적 대기 (의혹 확산)', '젠슨 황 사임 후폭풍에 더해 중국 딥시크 블랙웰 우회 공급 의혹까지 제기되며 17일 실적 발표 앞두고 HBM 공급망 전반 긴장 고조', 'https://www.yna.co.kr/view/AKR20261113040151008')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">엔비디아 (NVDA)</span>
           <span class="stock-chg chg-down">의혹 확산</span>
@@ -720,7 +725,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">11/17 실적 대기</div>
         <div class="stock-snippet" style="color:#e2e8f0;">젠슨 황 사임 후폭풍에 더해 중국 딥시크 블랙웰 우회 공급 의혹까지 제기되며 17일 실적 발표 앞두고 HBM 공급망 전반 긴장 고조</div>
       </div>
-      <div class="stock-card" style="background: #E8212738; border: 1px solid #E82127;" onclick="openStockModal('테슬라 (TSLA)', '프리마켓 탐색 (자체 HBM 모멘텀)', '자체 AI 칩 HBM 추진 모멘텀과 기술주 리더십 공백 속 프리마켓 방향성 탐색', 'https://www.newspim.com/news/view/20261110000703')">
+      <div class="stock-card" data-dir="neutral" style="background: #E8212738; border: 1px solid #E82127;" onclick="openStockModal('테슬라 (TSLA)', '프리마켓 탐색 (자체 HBM 모멘텀)', '자체 AI 칩 HBM 추진 모멘텀과 기술주 리더십 공백 속 프리마켓 방향성 탐색', 'https://www.newspim.com/news/view/20261110000703')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">테슬라 (TSLA)</span>
           <span class="stock-chg chg-neutral">자체 HBM 모멘텀</span>
@@ -728,7 +733,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">프리마켓 탐색</div>
         <div class="stock-snippet" style="color:#e2e8f0;">자체 AI 칩 HBM 추진 모멘텀과 기술주 리더십 공백 속 프리마켓 방향성 탐색</div>
       </div>
-      <div class="stock-card" style="background: #4285F438; border: 1px solid #4285F4;" onclick="openStockModal('알파벳 A (GOOGL)', '자체 TPU 강화 (독자 칩 모멘텀)', '엔비디아 독점 균열 속 구글 자체 텐서 TPU 생태계 부각 관전', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+      <div class="stock-card" data-dir="neutral" style="background: #4285F438; border: 1px solid #4285F4;" onclick="openStockModal('알파벳 A (GOOGL)', '자체 TPU 강화 (독자 칩 모멘텀)', '엔비디아 독점 균열 속 구글 자체 텐서 TPU 생태계 부각 관전', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">알파벳 A (GOOGL)</span>
           <span class="stock-chg chg-neutral">독자 칩 모멘텀</span>
@@ -736,7 +741,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">자체 TPU 강화</div>
         <div class="stock-snippet" style="color:#e2e8f0;">엔비디아 독점 균열 속 구글 자체 텐서 TPU 생태계 부각 관전</div>
       </div>
-      <div class="stock-card" style="background: #0668E138; border: 1px solid #0668E1;" onclick="openStockModal('메타 플랫폼스 (META)', '긴축 경계 (700$ 공방)', '미 국채 10년물 5.12% 돌파에 따른 밸류에이션 부담 소화', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+      <div class="stock-card" data-dir="down" style="background: #0668E138; border: 1px solid #0668E1;" onclick="openStockModal('메타 플랫폼스 (META)', '긴축 경계 (700$ 공방)', '미 국채 10년물 5.12% 돌파에 따른 밸류에이션 부담 소화', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">메타 플랫폼스 (META)</span>
           <span class="stock-chg chg-down">700$ 공방</span>
@@ -744,7 +749,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">긴축 경계</div>
         <div class="stock-snippet" style="color:#e2e8f0;">미 국채 10년물 5.12% 돌파에 따른 밸류에이션 부담 소화</div>
       </div>
-      <div class="stock-card" style="background: #FF990038; border: 1px solid #FF9900;" onclick="openStockModal('아마존 (AMZN)', 'AWS 인프라 (270$ 수성)', '자체 AI 반도체 트레이니움 확대 및 클라우드 견조함 부각', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+      <div class="stock-card" data-dir="neutral" style="background: #FF990038; border: 1px solid #FF9900;" onclick="openStockModal('아마존 (AMZN)', 'AWS 인프라 (270$ 수성)', '자체 AI 반도체 트레이니움 확대 및 클라우드 견조함 부각', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">아마존 (AMZN)</span>
           <span class="stock-chg chg-neutral">270$ 수성</span>
@@ -752,7 +757,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">AWS 인프라</div>
         <div class="stock-snippet" style="color:#e2e8f0;">자체 AI 반도체 트레이니움 확대 및 클라우드 견조함 부각</div>
       </div>
-      <div class="stock-card" style="background: #0077C838; border: 1px solid #0077C8;" onclick="openStockModal('마이크론 (MU)', '금리·유가 부담 (숨고르기)', '엔비디아발 센티멘트 위축과 미 국채금리 5.12% 재상승 여파 소화', 'https://www.infostockdaily.co.kr/news/articleView.html?idxno=218913')">
+      <div class="stock-card" data-dir="down" style="background: #0077C838; border: 1px solid #0077C8;" onclick="openStockModal('마이크론 (MU)', '금리·유가 부담 (숨고르기)', '엔비디아발 센티멘트 위축과 미 국채금리 5.12% 재상승 여파 소화', 'https://www.infostockdaily.co.kr/news/articleView.html?idxno=218913')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">마이크론 (MU)</span>
           <span class="stock-chg chg-down">숨고르기</span>
@@ -760,7 +765,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">금리·유가 부담</div>
         <div class="stock-snippet" style="color:#e2e8f0;">엔비디아발 센티멘트 위축과 미 국채금리 5.12% 재상승 여파 소화</div>
       </div>
-      <div class="stock-card" style="background: #94a3b838; border: 1px solid #94a3b8;" onclick="openStockModal('팔란티어 (PLTR)', '엔터프라이즈 AI (160$ 지지)', '정부 및 기업용 AI 수주 건재함 바탕으로 160달러 지지선 유지', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+      <div class="stock-card" data-dir="neutral" style="background: #94a3b838; border: 1px solid #94a3b8;" onclick="openStockModal('팔란티어 (PLTR)', '엔터프라이즈 AI (160$ 지지)', '정부 및 기업용 AI 수주 건재함 바탕으로 160달러 지지선 유지', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">팔란티어 (PLTR)</span>
           <span class="stock-chg chg-neutral">160$ 지지</span>
@@ -768,7 +773,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">엔터프라이즈 AI</div>
         <div class="stock-snippet" style="color:#e2e8f0;">정부 및 기업용 AI 수주 건재함 바탕으로 160달러 지지선 유지</div>
       </div>
-      <div class="stock-card" style="background: #006B5438; border: 1px solid #006B54;" onclick="openStockModal('GE 버노바 (GEV)', '전력망 인프라 (안정적 매물소화)', '데이터센터 전력 공급망 확충 기조 속 약보합권 매물 소화', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+      <div class="stock-card" data-dir="neutral" style="background: #006B5438; border: 1px solid #006B54;" onclick="openStockModal('GE 버노바 (GEV)', '전력망 인프라 (안정적 매물소화)', '데이터센터 전력 공급망 확충 기조 속 약보합권 매물 소화', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">GE 버노바 (GEV)</span>
           <span class="stock-chg chg-neutral">안정적 매물소화</span>
@@ -776,7 +781,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">전력망 인프라</div>
         <div class="stock-snippet" style="color:#e2e8f0;">데이터센터 전력 공급망 확충 기조 속 약보합권 매물 소화</div>
       </div>
-      <div class="stock-card" style="background: #10B98138; border: 1px solid #10B981;" onclick="openStockModal('블룸에너지 (BE)', '연료전지 수혜 (구글 파트너십)', '구글 702MW 전력 공급 계약 이후 단기 차익 매물 소화 과정', 'https://www.benzinga.com/trading-ideas/movers/26/11/62973002/bloom-energy-scores-major-role-in-googles-702-megawatt-power-project')">
+      <div class="stock-card" data-dir="neutral" style="background: #10B98138; border: 1px solid #10B981;" onclick="openStockModal('블룸에너지 (BE)', '연료전지 수혜 (구글 파트너십)', '구글 702MW 전력 공급 계약 이후 단기 차익 매물 소화 과정', 'https://www.benzinga.com/trading-ideas/movers/26/11/62973002/bloom-energy-scores-major-role-in-googles-702-megawatt-power-project')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">블룸에너지 (BE)</span>
           <span class="stock-chg chg-neutral">구글 파트너십</span>
@@ -784,7 +789,7 @@
         <div class="stock-sub" style="color:#cbd5e1;">연료전지 수혜</div>
         <div class="stock-snippet" style="color:#e2e8f0;">구글 702MW 전력 공급 계약 이후 단기 차익 매물 소화 과정</div>
       </div>
-      <div class="stock-card" style="background: #00569638; border: 1px solid #005696;" onclick="openStockModal('웨스턴 디지털 (WDC)', '낸드·스토리지 (380$ 수성)', '반도체 전반의 숨고르기 흐름 속 380달러선 지지력 확인', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+      <div class="stock-card" data-dir="down" style="background: #00569638; border: 1px solid #005696;" onclick="openStockModal('웨스턴 디지털 (WDC)', '낸드·스토리지 (380$ 수성)', '반도체 전반의 숨고르기 흐름 속 380달러선 지지력 확인', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">웨스턴 디지털 (WDC)</span>
           <span class="stock-chg chg-down">380$ 수성</span>
@@ -871,18 +876,23 @@
 
   <!-- Raw Data Modal for Audit History -->
   <div class="modal-backdrop" id="rawDataModal" onclick="closeRawDataModal()">
-    <div class="modal" style="max-width:760px;" onclick="event.stopPropagation()">
+    <div class="modal" style="max-width:1080px; width:95vw;" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div>
-          <h3 style="font-size:1.15rem; color:#fff;">최근 1개월 누적 예측 로그</h3>
+          <h3 style="font-size:1.15rem; color:#fff;">최근 1개월 누적 마감 로그</h3>
           <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">엄격한 이진 판정(⭕/❌) 상세 로그</div>
         </div>
-        <button class="close-btn" onclick="closeRawDataModal()">✕</button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem;" onclick="filterAuditRows('all')">전체</button>
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#10b981; color:#34d399;" onclick="filterAuditRows('⭕')">⭕ 적중</button>
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#ef4444; color:#f87171;" onclick="filterAuditRows('❌')">❌ 실패</button>
+          <button class="close-btn" onclick="closeRawDataModal()">✕</button>
+        </div>
       </div>
       <div class="indicators-table-wrap" style="max-height:60vh; margin-bottom:0;">
         <table class="data-table">
           <thead>
-            <tr>
+            <tr data-res="">
               <th>일자</th>
               <th>코스피 (예측/실제)</th>
               <th>삼성전자 (예측/실제)</th>
@@ -891,205 +901,205 @@
               <th>핵심 결과 및 오차 사유</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="auditTableBody">
             
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.13 (금)</td>
-            <td>-0.8%~+0.6% / -0.98%</td>
-            <td>-0.8%~+1.5% / -0.96%</td>
-            <td>-2.5%~+1.0% / -3%대</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.8%~+0.6%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.98%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.8%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.96%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -2.5%~+1.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -3%대</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">장중 5,500선 돌파 후 외인 5,505억 순매도 전환(하이닉스 4,714억 매도) 및 엔비디아 딥시크 의혹으로 하단 이탈</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.12 (목)</td>
-            <td>+1.2%~+2.8% / -0.61%</td>
-            <td>+1.2%~+3.5% / +0.97%</td>
-            <td>+2.0%~+5.5% / -1.17%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.2%~+2.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.61%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.2%~+3.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.97%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +2.0%~+5.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.17%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">반도체 상승 전망했으나 옵션만기 기관 9,908억 프로그램 매물 및 젠슨 황 해임설 2차 파장으로 하방 이탈</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.11 (수)</td>
-            <td>-1.0%~+0.5% / +2.60%</td>
-            <td>-1.2%~+1.0% / +3.57%</td>
-            <td>-2.0%~+1.5% / +5.36%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -1.0%~+0.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +2.60%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -1.2%~+1.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +3.57%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -2.0%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +5.36%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">美 CPI 금리 우려로 숨고르기 예상했으나 코어위브 호실적 및 외인 반도체 폭풍 매수로 폭등 상단 이탈</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.10 (화)</td>
-            <td>+1.5%~+3.0% / +4.39%</td>
-            <td>+1.2%~+3.5% / +4.74%</td>
-            <td>+2.0%~+5.5% / +6.69%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.5%~+3.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +4.39%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.2%~+3.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +4.74%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +2.0%~+5.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +6.69%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">반등 방향은 정확했으나 외인 8일 만의 매수 전환 및 매수 사이드카 발동으로 예측 상단 초과 폭등</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.09 (월)</td>
-            <td>+1.2%~+2.8% / -0.81%</td>
-            <td>+1.2%~+3.8% / +0.64%</td>
-            <td>+3.0%~+6.5% / +0.35%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.2%~+2.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.81%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.2%~+3.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.64%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +3.0%~+6.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.35%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">장중 5,170선(+2.2%) 급반등했으나 외인 8,647억 연속 매도 및 바이오(-16%) 폭락에 종가 하방 이탈</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.06 (금)</td>
-            <td>-0.5%~+0.5% / -6.02%</td>
-            <td>-0.8%~+0.5% / -6.35%</td>
-            <td>-1.0%~+0.8% / -10.44%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.5%~+0.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -6.02%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.8%~+0.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -6.35%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -1.0%~+0.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -10.44%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">지지선 형성 전망했으나 외인 2.77조 투매 및 서킷브레이커 폭락 오판</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.05 (목)</td>
-            <td>+0.3%~+0.8% / -5.28%</td>
-            <td>+0.4%~+1.0% / -7.02%</td>
-            <td>+0.5%~+1.5% / -9.15%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.3%~+0.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -5.28%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.4%~+1.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -7.02%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -9.15%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">미 의회 선거 결과 여파로 촉발된 AI 규제 우려 및 패닉 셀링 오판</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.04 (수)</td>
-            <td>+0.4%~+1.0% / -0.55%</td>
-            <td>+0.5%~+1.2% / -0.70%</td>
-            <td>+0.8%~+1.8% / -1.10%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.4%~+1.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.55%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.70%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.8%~+1.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.10%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">선거 랠리 기대했으나 개표 불확실성에 따른 위험자산 회피 오판</td>
           </tr>
-          <tr>
+          <tr data-res="⭕">
             <td style="font-weight:700; white-space:nowrap;">11.03 (화)</td>
-            <td>-0.2%~+0.5% / +0.15%</td>
-            <td>-0.3%~+0.6% / +0.30%</td>
-            <td>-0.5%~+0.8% / +0.25%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.2%~+0.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.15%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.3%~+0.6%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.30%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.5%~+0.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.25%</div></td>
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">미 중간선거 관망세 속 보합권 숨고르기 장세 밴드 적중</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">11.02 (월)</td>
-            <td>+0.8%~+1.5% / +2.24%</td>
-            <td>+1.0%~+2.0% / +2.85%</td>
-            <td>+1.5%~+3.0% / +3.40%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.8%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +2.24%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.0%~+2.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +2.85%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.5%~+3.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +3.40%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">11월 첫 거래일 반등 예상했으나 2% 넘는 폭등세로 예측 상단 초과 이탈</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">10.30 (금)</td>
-            <td>-0.5%~-1.2% / -1.35%</td>
-            <td>-0.8%~-1.6% / -1.75%</td>
-            <td>-1.5%~-2.5% / -2.85%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.5%~-1.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.35%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.8%~-1.6%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.75%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -1.5%~-2.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -2.85%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">월말 윈도우 드레싱 기대 대비 외인/기관 동반 투매로 하방 이탈</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">10.29 (목)</td>
-            <td>+0.4%~+0.9% / -0.65%</td>
-            <td>+0.5%~+1.1% / -1.15%</td>
-            <td>+0.8%~+1.8% / -1.50%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.4%~+0.9%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.65%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.1%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.15%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.8%~+1.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.50%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">미 증시 호조에도 불구, 국내 반도체 차익 실현 매물 폭탄 오판</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">10.28 (수)</td>
-            <td>-0.4%~+0.2% / +0.95%</td>
-            <td>-0.5%~+0.5% / +1.40%</td>
-            <td>-0.8%~+0.5% / +1.85%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.4%~+0.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.95%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.5%~+0.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +1.40%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.8%~+0.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +1.85%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">보합 전망했으나 주요 기업 실적 서프라이즈로 장중 급반등</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">10.27 (화)</td>
-            <td>+0.3%~+0.8% / -0.45%</td>
-            <td>+0.4%~+1.0% / -0.80%</td>
-            <td>+0.5%~+1.5% / -0.95%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.3%~+0.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.45%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.4%~+1.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.80%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.95%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">외환시장 원화 약세 심화로 외인 장중 순매도 전환 오판</td>
           </tr>
-          <tr>
+          <tr data-res="⭕">
             <td style="font-weight:700; white-space:nowrap;">10.26 (월)</td>
-            <td>+0.5%~+1.1% / +0.82%</td>
-            <td>+0.6%~+1.4% / +0.95%</td>
-            <td>+1.2%~+2.2% / +1.75%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.1%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.82%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.6%~+1.4%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.95%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.2%~+2.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +1.75%</div></td>
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">뉴욕 증시 강세 연동 및 기관 저가 매수 유입 적중</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">10.23 (금)</td>
-            <td>+0.4%~+1.0% / +0.15%</td>
-            <td>+0.5%~+1.2% / -0.25%</td>
-            <td>+0.8%~+1.8% / +0.40%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.4%~+1.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.15%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.25%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.8%~+1.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.40%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">저가 매수 유입 예상했으나 주말 앞둔 리스크 회피 매물 출회</td>
           </tr>
-          <tr>
+          <tr data-res="⭕">
             <td style="font-weight:700; white-space:nowrap;">10.22 (목)</td>
-            <td>-0.6%~-1.2% / -1.05%</td>
-            <td>-0.8%~-1.5% / -1.35%</td>
-            <td>-1.2%~-2.2% / -1.90%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.6%~-1.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.05%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.8%~-1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.35%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -1.2%~-2.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.90%</div></td>
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">미 국채 금리 재반등 및 외인 현물 매도 공세 하방 적중</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">10.21 (수)</td>
-            <td>-0.2%~+0.4% / -0.75%</td>
-            <td>-0.5%~+0.3% / -1.20%</td>
-            <td>-0.5%~+0.8% / -1.45%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.2%~+0.4%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.75%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.5%~+0.3%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.20%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.5%~+0.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.45%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">미 빅테크 실적 관망세에 따른 차익 실현 매물 출회 오판</td>
           </tr>
-          <tr>
+          <tr data-res="⭕">
             <td style="font-weight:700; white-space:nowrap;">10.20 (화)</td>
-            <td>+0.2%~+0.7% / +0.45%</td>
-            <td>+0.3%~+0.9% / +0.60%</td>
-            <td>+0.5%~+1.5% / +0.80%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.2%~+0.7%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.45%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.3%~+0.9%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.60%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.80%</div></td>
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">호실적 기대감 유지 속 상승 밴드 내 안착 적중</td>
           </tr>
-          <tr>
+          <tr data-res="⭕">
             <td style="font-weight:700; white-space:nowrap;">10.19 (월)</td>
-            <td>+0.6%~+1.2% / +0.95%</td>
-            <td>+0.8%~+1.5% / +1.15%</td>
-            <td>+1.5%~+2.5% / +2.05%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.6%~+1.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.95%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.8%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +1.15%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.5%~+2.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +2.05%</div></td>
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">주말 실적 기대감 및 반도체 업종 저가 매수세 유입 적중</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">10.16 (금)</td>
-            <td>+0.3%~+0.8% / +0.12%</td>
-            <td>+0.2%~+0.7% / -0.40%</td>
-            <td>+0.5%~+1.5% / +0.20%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.3%~+0.8%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.12%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.2%~+0.7%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.40%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.20%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">삼성전자 외인 추가 매도세로 상승 전환 실패 및 보합세 하회</td>
           </tr>
-          <tr>
+          <tr data-res="⭕">
             <td style="font-weight:700; white-space:nowrap;">10.15 (목)</td>
-            <td>-0.5%~-1.2% / -0.92%</td>
-            <td>-0.8%~-1.5% / -1.05%</td>
-            <td>-1.5%~-2.5% / -2.10%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.5%~-1.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.92%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.8%~-1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.05%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -1.5%~-2.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -2.10%</div></td>
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">금리 상승 여파와 기술주 조정 지속 하방 밴드 적중</td>
           </tr>
-          <tr>
+          <tr data-res="❌">
             <td style="font-weight:700; white-space:nowrap;">10.14 (수)</td>
-            <td>+0.5%~+1.0% / -0.85%</td>
-            <td>+0.8%~+1.5% / -1.10%</td>
-            <td>+1.2%~+2.2% / -1.65%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.85%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.8%~+1.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.10%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.2%~+2.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -1.65%</div></td>
             <td style="text-align:center;" class="eval-circle">❌</td>
             <td style="color:#94a3b8; font-size:0.82rem;">미 국채 10년물 금리 급등에 따른 외인 대량 매도 전환 오판</td>
           </tr>
-          <tr>
+          <tr data-res="⭕">
             <td style="font-weight:700; white-space:nowrap;">10.13 (화)</td>
-            <td>-0.3%~+0.3% / -0.21%</td>
-            <td>-0.5%~+0.5% / -0.15%</td>
-            <td>-1.0%~+1.0% / +0.30%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.3%~+0.3%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.21%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -0.5%~+0.5%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 -0.15%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 -1.0%~+1.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.30%</div></td>
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">금리 부담에 따른 보합권 박스권 등락 밴드 내 마감 적중</td>
           </tr>
-          <tr>
+          <tr data-res="⭕">
             <td style="font-weight:700; white-space:nowrap;">10.12 (월)</td>
-            <td>+0.4%~+0.9% / +0.68%</td>
-            <td>+0.5%~+1.2% / +0.85%</td>
-            <td>+1.0%~+2.0% / +1.42%</td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.4%~+0.9%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.68%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +0.5%~+1.2%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +0.85%</div></td>
+            <td><div style="font-size:0.74rem; color:#94a3b8; white-space:nowrap;">예상 +1.0%~+2.0%</div><div style="font-size:0.84rem; font-weight:800; color:#f8fafc; white-space:nowrap;">실제 +1.42%</div></td>
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">주말 미 증시 반등 훈풍 및 반도체 투톱 동반 상승 적중</td>
           </tr>
@@ -1142,6 +1152,16 @@
         bar.textContent = text;
         bar.style.display = 'block';
       }
+    }
+    function filterStocks(dir) {
+      document.querySelectorAll('#stocksGrid .stock-card').forEach(el => {
+        el.style.display = (dir === 'all' || el.dataset.dir === dir) ? '' : 'none';
+      });
+    }
+    function filterAuditRows(res) {
+      document.querySelectorAll('#auditTableBody tr').forEach(tr => {
+        tr.style.display = (res === 'all' || tr.dataset.res === res) ? '' : 'none';
+      });
     }
   </script>
 </body>
