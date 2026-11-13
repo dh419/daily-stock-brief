@@ -50,16 +50,20 @@ def render_band_meter(t, session):
     """
     if session == 'morning':
         low_v, high_v = extract_range_from_str(t.get('band', ''))
+        gap_low, gap_high = extract_range_from_str(t.get('gap', ''))
         actual_v = None
         pred_label = t.get('band', '-')
+        gap_label = t.get('gap', '').replace('시초가', '').strip()
     else:
         low_v, high_v = extract_range_from_str(t.get('gap', ''))
+        gap_low, gap_high = None, None
         actual_v = extract_single_pct(t.get('band', ''))
         pred_label = t.get('gap', '-').replace('오전예측:', '').strip()
+        gap_label = ""
 
     # Dynamic scale check
     max_abs = 5.0
-    for v in (low_v, high_v, actual_v):
+    for v in (low_v, high_v, gap_low, gap_high, actual_v):
         if v is not None and abs(v) > 5.0:
             max_abs = 12.0
             break
@@ -77,6 +81,13 @@ def render_band_meter(t, session):
         width = max(2.0, p_high - p_low)
         band_html = f'<div class="meter-band" style="left:{p_low:.1f}%; width:{width:.1f}%;"></div>'
 
+    gap_html = ""
+    if gap_low is not None and gap_high is not None:
+        g_low = to_pct_pos(gap_low)
+        g_high = to_pct_pos(gap_high)
+        g_w = max(2.0, g_high - g_low)
+        gap_html = f'<div style="position:absolute; top:4px; bottom:4px; left:{g_low:.1f}%; width:{g_w:.1f}%; background:rgba(251, 191, 36, 0.45); border-left:2px solid #fbbf24; border-right:2px solid #fbbf24; border-radius:2px; z-index:7;" title="시초가: {gap_label}"></div>'
+
     actual_html = ""
     is_hit = False
     if actual_v is not None:
@@ -86,7 +97,7 @@ def render_band_meter(t, session):
         pin_class = "hit" if is_hit else "miss"
         actual_html = f'<div class="meter-actual-pin {pin_class}" style="left:{p_act:.1f}%;" title="실제: {actual_v:+.2f}%"></div>'
 
-    status_right = '<span style="color:#94a3b8;">장중 대기</span>'
+    status_right = f'<span style="color:#fbbf24;">시초 {gap_label}</span>' if gap_label else '<span style="color:#94a3b8;">장중 대기</span>'
     if actual_v is not None:
         status_right = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>'
 
@@ -100,6 +111,7 @@ def render_band_meter(t, session):
         <div class="meter-track">
           <div class="axis-zero"></div>
           {band_html}
+          {gap_html}
           {actual_html}
         </div>
         <div class="meter-legend">
@@ -266,7 +278,6 @@ def render_html(data, session, now_kst):
       <div class="target-card" style="background: {t_col}24; border: 1px solid {t_col};">
         <div class="target-header">
           <div class="target-name" style="color:#ffffff;">{t['name']}<span class="target-code" style="color:#cbd5e1;">{t['code']}</span></div>
-          <span class="target-gap" style="background:{t_col}40; color:#ffffff; border:1px solid {t_col}80;">{t['gap']}</span>
         </div>
         {meter_html}
         <div class="target-desc" style="color:#e2e8f0;">{t['desc']}</div>
@@ -311,7 +322,7 @@ def render_html(data, session, now_kst):
             x2_i, y2_i = cx + r_in * math.cos(rad1), cy + r_in * math.sin(rad1)
             large_arc = 1 if sweep > 180 else 0
             d_path = f"M {x1_o:.1f} {y1_o:.1f} A {r_out} {r_out} 0 {large_arc} 1 {x2_o:.1f} {y2_o:.1f} L {x1_i:.1f} {y1_i:.1f} A {r_in} {r_in} 0 {large_arc} 0 {x2_i:.1f} {y2_i:.1f} Z"
-            short_kw = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name'])[:10]
+            short_kw = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name'])[:6]
             pop_txt = f"{re.sub(r'^\d+\.\s*', '', ind['name'])} ({w_val}% · {ind['signalText']})"
             safe_pop = pop_txt.replace("'", "\\'")
             
@@ -337,7 +348,7 @@ def render_html(data, session, now_kst):
     ind_bar_html = f"""
     <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
       <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-        <div style="position:relative; width:120px; height:120px; flex-shrink:0; margin:0 auto;">
+        <div style="position:relative; width:148px; height:148px; flex-shrink:0; margin:0 auto;">
           <svg viewBox="0 0 120 120" style="width:100%; height:100%;">
             {''.join(ind_slices)}
             <text x="60" y="57" text-anchor="middle" font-size="9" font-weight="bold" fill="#f87171">▲ {up_weight}%</text>
