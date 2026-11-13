@@ -310,20 +310,22 @@ def render_html(data, session, now_kst):
             x1_i, y1_i = cx + r_in * math.cos(rad2), cy + r_in * math.sin(rad2)
             x2_i, y2_i = cx + r_in * math.cos(rad1), cy + r_in * math.sin(rad1)
             large_arc = 1 if sweep > 180 else 0
-            
             d_path = f"M {x1_o:.1f} {y1_o:.1f} A {r_out} {r_out} 0 {large_arc} 1 {x2_o:.1f} {y2_o:.1f} L {x1_i:.1f} {y1_i:.1f} A {r_in} {r_in} 0 {large_arc} 0 {x2_i:.1f} {y2_i:.1f} Z"
-            ind_slices.append(f'<path d="{d_path}" fill="{seg_col}" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="focusIndicator(\'ind-{idx}\')" />')
+            short_kw = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name'])[:10]
+            pop_txt = f"{re.sub(r'^\d+\.\s*', '', ind['name'])} ({w_val}% · {ind['signalText']})"
+            safe_pop = pop_txt.replace("'", "\\'")
             
-            # Percent inside slice (no #number)
+            ind_slices.append(f'<path d="{d_path}" fill="{seg_col}" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip(\'{safe_pop}\')" />')
+            
+            # Percent inside slice
             mid_rad = math.radians(start_deg + sweep / 2.0)
             lx = cx + ((r_out + r_in) / 2.0) * math.cos(mid_rad)
             ly = cy + ((r_out + r_in) / 2.0) * math.sin(mid_rad)
             ind_slices.append(f'<text x="{lx:.1f}" y="{ly + 3:.1f}" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">{w_val}%</text>')
             start_deg = end_deg
 
-            short_kw = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name'])[:10]
             ind_legends.append(f'''
-              <div onclick="focusIndicator('ind-{idx}')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+              <div onclick="showDonutTip('{safe_pop}')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
                 <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
                   <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:{seg_col}; flex-shrink:0;"></span>
                   <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{short_kw}</span>
@@ -333,17 +335,20 @@ def render_html(data, session, now_kst):
             ''')
 
     ind_bar_html = f"""
-    <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-      <div style="position:relative; width:120px; height:120px; flex-shrink:0; margin:0 auto;">
-        <svg viewBox="0 0 120 120" style="width:100%; height:100%;">
-          {''.join(ind_slices)}
-          <text x="60" y="57" text-anchor="middle" font-size="9" font-weight="bold" fill="#f87171">▲ {up_weight}%</text>
-          <text x="60" y="70" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">▼ {down_weight}%</text>
-        </svg>
+    <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+        <div style="position:relative; width:120px; height:120px; flex-shrink:0; margin:0 auto;">
+          <svg viewBox="0 0 120 120" style="width:100%; height:100%;">
+            {''.join(ind_slices)}
+            <text x="60" y="57" text-anchor="middle" font-size="9" font-weight="bold" fill="#f87171">▲ {up_weight}%</text>
+            <text x="60" y="70" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">▼ {down_weight}%</text>
+          </svg>
+        </div>
+        <div style="flex:1; min-width:190px; display:flex; flex-direction:column; gap:4px;">
+          {''.join(ind_legends)}
+        </div>
       </div>
-      <div style="flex:1; min-width:190px; display:flex; flex-direction:column; gap:4px;">
-        {''.join(ind_legends)}
-      </div>
+      <div id="donutTipBar" style="margin-top:8px; font-size:0.78rem; font-weight:700; color:#fbbf24; display:none; padding:6px 10px; background:#0f172a; border-radius:6px; border:1px solid #334155;"></div>
     </div>
     """ if ind_slices else ""
 
