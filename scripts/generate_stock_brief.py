@@ -99,9 +99,9 @@ def render_band_meter(t, session):
 
     if session == 'morning':
         left_legend = f'<span style="color:#38bdf8;">시초: {gap_label}</span>' if gap_label else '<span style="color:#94a3b8;">시초 대기</span>'
-        right_legend = f'<span style="color:#c7d2fe;">예측: {pred_label}</span>'
+        right_legend = f'<span style="color:#c7d2fe;">마감: {pred_label}</span>'
     else:
-        left_legend = f'<span style="color:#c7d2fe;">예측: {pred_label}</span>'
+        left_legend = f'<span style="color:#c7d2fe;">마감: {pred_label}</span>'
         right_legend = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>' if actual_v is not None else ''
 
     return f"""
@@ -490,6 +490,25 @@ def render_html(data, session, now_kst):
     html = html.replace('{{EXECUTIVE_SUMMARY}}', data.get('executiveSummary', ''))
     html = html.replace('{{MACRO_CARDS_HTML}}', macro_html)
     html = html.replace('{{TARGET_CARDS_HTML}}', target_html)
+    ql = data.get('quantLogic', {})
+    if ql:
+        regime_txt = ql.get('regime', '체제 미지정')
+        score_txt = ql.get('score', '-')
+        band_rule_txt = ql.get('bandRule', '-')
+        rationale_txt = ql.get('rationale', '')
+        quant_logic_html = f"""
+    <div style="background:rgba(30,41,59,0.72); border:1px solid rgba(99,102,241,0.35); border-left:4px solid #6366f1; border-radius:10px; padding:12px 14px; margin-bottom:12px;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:6px;">
+        <span style="background:#4f46e5; color:#ffffff; font-size:0.74rem; font-weight:800; padding:2px 8px; border-radius:5px;">{regime_txt}</span>
+        <span style="background:#0f172a; color:#38bdf8; border:1px solid #334155; font-size:0.74rem; font-weight:700; padding:2px 8px; border-radius:5px;">{score_txt}</span>
+        <span style="background:#0f172a; color:#fbbf24; border:1px solid #334155; font-size:0.74rem; font-weight:700; padding:2px 8px; border-radius:5px;">{band_rule_txt}</span>
+      </div>
+      <div style="font-size:0.84rem; color:#e2e8f0; line-height:1.45;">{rationale_txt}</div>
+    </div>"""
+    else:
+        quant_logic_html = ""
+
+    html = html.replace('{{QUANT_LOGIC_HTML}}', quant_logic_html)
     html = html.replace('{{INDICATORS_BAR_HTML}}', ind_bar_html)
     html = html.replace('{{INDICATORS_ROWS_HTML}}', ind_html)
     html = html.replace('{{STOCKS_CARDS_HTML}}', stocks_html)
@@ -518,13 +537,20 @@ def get_session_prompt(session, now_kst):
 [핵심 임무: 규칙 기반 퀀트 예측 (감에 의한 숫자 찍기 금지)]
 다음 3단계 정량 공식을 반드시 순서대로 수행하여 예측 밴드를 산출하세요:
 
-Step 1. 4대 정량 축 기반 6대 선행 지표 실제 수치 수집 및 스코어링 (가중치 총합 100%)
+Step 1. 투명한 규칙 기반 6대 선행 지표 수집 및 스코어링 (Core 4개 고정 70% + Dynamic 2개 체제별 자동 교체 30%)
+  [고정 Core 4대 지표 - 매일 필수 측정 (70%)]
   - ① 해외 선행(25%): MSCI 한국 ETF(EWY) 등락률 & 코스피200 야간선물
   - ② 반도체 동조(20%): 필라델피아 반도체(SOX), 마이크론(MU), SK하이닉스 ADR(SKHY), 엔비디아(NVDA)
   - ③ 역외 외환(15%): 뉴욕 NDF 원/달러 1개월물 변동폭 (서울 종가 대비 상승 시 하방, 하락 시 상방)
-  - ④ 글로벌 금리/변동성(15%): 미 국채 10년물 금리 변동폭(bp) & VIX 지수 레벨
-  - ⑤ 외국인 추세 수급(15%): 최근 3거래일 외국인 코스피 현·선물 누적 순매수 방향
-  - ⑥ 국내 수급 이벤트(10%): 프로그램 매매, 옵션만기, 자사주 매입 등 수급 왜곡 요인
+  - ④ 외국인 추세 수급(10%): 최근 3거래일 외국인 코스피 현·선물 누적 순매수 방향
+
+  [규칙 기반 Dynamic 2대 지표 - 시장 체제(Regime) 우선순위에 따라 기계적 자동 선택 (30%, 각 15%)]
+  * 임의 선택 금지! 아래 1~4번 우선순위 중 오늘 해당하는 첫 번째 체제의 지표 2개를 반드시 투입하고, 지표 설명에 '[체제: ...]'을 명시하세요:
+    - 1순위 [매크로 이벤트] (FOMC·CPI·고용지표 발표 당일/익일): ⑤ 미 국채 2년물 금리 변동폭, ⑥ 달러인덱스(DXY)
+    - 2순위 [변동성 경보] (VIX 20 이상 또는 전일 코스피 ±1.5% 초과): ⑤ VIX 지수 레벨, ⑥ 원/엔 환율
+    - 3순위 [반도체 실적 시즌] (엔비디아·TSMC·삼성·하이닉스 실적/가이던스 주간): ⑤ SOX 대비 TSMC 괴리율, ⑥ 엔비디아 일일 등락률
+    - 4순위 [평시 수급 장세] (위 1~3 해당 없음): ⑤ 외국인 코스피200 선물 순매수, ⑥ 프로그램 매매·옵션만기 수급 이벤트
+
   * 각 지표별로 상방(+1), 중립(0), 하방(-1)을 판정하고 가중치를 곱해 종합 시장 점수 S (-100 ~ +100점)를 계산하세요.
 
 Step 2. 최근 5거래일 변동성(ATR) 기반 동적 밴드 폭(W) 결정 [과신 방지 규칙]
@@ -559,6 +585,12 @@ Step 3. 종목별 베타(Beta) 차등 적용 및 최종 밴드 산출
 {{
   "reportTitle": "{now_kst.strftime('%m.%d')}({weekday_ko}) {'개장 브리핑' if session == 'morning' else '마감 & 지표 감사'}",
   "executiveSummary": "핵심 지수 마감/예측 요약 및 당일 핵심 관전 포인트 2줄 요약",
+  "quantLogic": {{
+    "regime": "적용된 체제명 (예: 변동성 경보 모드 / 매크로 이벤트 모드 / 평시 수급 모드)",
+    "score": "직관적 방향성 요약 (예: 매수 우위 (4상방 · 1하방) 또는 매도 우위 (1상방 · 4하방))",
+    "bandRule": "직관적 변동폭 표현 (예: 예상 등락폭 ±1.8% (주의) 또는 안정권 ±0.9%)",
+    "rationale": "수식 없이 3단계 핵심 산출 과정만 간결히 표기: ① 지표 합산(예: 해외+25·반도체+20·NDF+15·수급-10 = +50) → ② 변동폭 결정(예: 5일 고변동장 ±1.8%) → ③ 종목별 배수 적용(코스피 1.0배·삼성 1.2배·하이닉스 1.8배로 마감 밴드 도출)"
+  }},
   "macroCards": [
     {{ "title": "다우존스 / S&P500 / 나스닥 / SOX / 美10년물 / 원·달러 등 6개", "value": "현재 수치", "change": "+0.54% 또는 -1.20%", "direction": "up 또는 down 또는 neutral" }}
   ],
@@ -669,4 +701,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
