@@ -237,15 +237,13 @@
       }
     }
 
-    function formatDateWithWeekday(dateStr) {
+    function formatDateShort(dateStr) {
       const days = ['일', '월', '화', '수', '목', '금', '토'];
       const d = new Date(dateStr + 'T00:00:00');
       if (isNaN(d)) return dateStr;
-      return `${dateStr} (${days[d.getDay()]})`;
-    }
-
-    function stripLeadingDate(title) {
-      return title.replace(/^\d{2,4}[.\-]\d{1,2}(?:[.\-]\d{1,2})?(?:\([일월화수목금토]\))?\s*/, '').trim() || title;
+      const m = dateStr.split('-')[1];
+      const day = dateStr.split('-')[2];
+      return `${m}/${day} (${days[d.getDay()]})`;
     }
 
     function renderSidebar() {
@@ -260,16 +258,14 @@
           selectReport(item.id, item.path, item.title);
           if (window.innerWidth <= 768) toggleSidebar();
         };
-        const dateLabel = formatDateWithWeekday(item.date);
-        const cleanTitle = stripLeadingDate(item.title);
+        const dateLabel = formatDateShort(item.date);
         el.innerHTML = `
-          <div class="item-top">
-            <span class="item-date">${dateLabel}</span>
+          <div class="item-top" style="margin-bottom:0;">
+            <span class="item-date" style="font-size:0.9rem;">${dateLabel}</span>
             <span class="item-session ${item.session === 'morning' ? 'session-morning' : 'session-evening'}">
               ${item.session === 'morning' ? '개장' : '마감'}
             </span>
           </div>
-          <div class="item-title">${cleanTitle}</div>
         `;
         container.appendChild(el);
       });
