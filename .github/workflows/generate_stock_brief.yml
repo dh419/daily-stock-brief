@@ -2,10 +2,10 @@ name: Generate and Publish Daily Stock Brief
 
 on:
   schedule:
-    # 매일 오전 07:30 KST (UTC 전일 22:30) 모닝 브리핑
-    - cron: '30 22 * * *'
-    # 매일 오후 18:00 KST (UTC 당일 09:00) 마감 분석 리포트
-    - cron: '0 9 * * *'
+    # 주 7일 매일 오전 07:00 KST (UTC 전일 22:00) 모닝 브리핑
+    - cron: '0 22 * * *'
+    # 주 7일 매일 오후 19:00 KST (UTC 당일 10:00) 마감 분석 리포트
+    - cron: '0 10 * * *'
   workflow_dispatch:
     inputs:
       session:
@@ -52,7 +52,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "session=${{ inputs.session }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.schedule }}" = "30 22 * * *" ]; then
+          elif [ "${{ github.event.schedule }}" = "0 22 * * *" ]; then
             echo "session=morning" >> $GITHUB_OUTPUT
           else
             echo "session=evening" >> $GITHUB_OUTPUT
