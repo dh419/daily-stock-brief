@@ -240,9 +240,11 @@ def render_timeline_svg(history):
     if not history:
         return '<div style="color:var(--text-dim); text-align:center; padding:20px;">누적 기록이 없습니다.</div>'
     
-    c1 = render_quant_section_chart(history, 'kospi', '코스피 (KOSPI)', '#10b981')
-    c2 = render_quant_section_chart(history, 'samsung', '삼성전자 (005930)', '#2563eb')
-    c3 = render_quant_section_chart(history, 'skhynix', 'SK하이닉스 (000660)', '#EA002C')
+    # 그래프는 최근 1개월(약 22거래일)만 표시
+    chart_history = history[-22:]
+    c1 = render_quant_section_chart(chart_history, 'kospi', '코스피 (KOSPI)', '#10b981')
+    c2 = render_quant_section_chart(chart_history, 'samsung', '삼성전자 (005930)', '#2563eb')
+    c3 = render_quant_section_chart(chart_history, 'skhynix', 'SK하이닉스 (000660)', '#EA002C')
     return c1 + c2 + c3
 
 def render_html(data, session, now_kst):
@@ -457,7 +459,6 @@ def render_html(data, session, now_kst):
         today_entry = data['todayAudit']
         history = [h for h in history if h['date'] != today_entry['date']]
         history.append(today_entry)
-        history = history[-30:]
         with open(AUDIT_HISTORY_PATH, 'w', encoding='utf-8') as f:
             json.dump(history, f, ensure_ascii=False, indent=2)
 
