@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+<script>try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
   <meta charset="UTF-8">
   <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -512,14 +513,21 @@
           <h3 style="font-size:1.15rem; color:#fff;">최근 1개월 누적 마감 로그</h3>
           <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">엄격한 이진 판정(⭕/❌) 상세 로그</div>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <input id="auditSearch" type="search" placeholder="일자·사유 검색" aria-label="로그 검색" oninput="applyAuditFilters()" style="padding:4px 8px; font-size:0.74rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); width:130px;">
           <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem;" onclick="filterAuditRows('all')">전체</button>
           <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#10b981; color:#34d399;" onclick="filterAuditRows('⭕')">⭕ 적중</button>
           <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#ef4444; color:#f87171;" onclick="filterAuditRows('❌')">❌ 실패</button>
+          <select id="auditPageSize" aria-label="페이지당 행 수" onchange="applyAuditFilters(1)" style="padding:4px 6px; font-size:0.74rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+            <option value="25">25행</option>
+            <option value="50">50행</option>
+            <option value="100">100행</option>
+          </select>
+          <span id="auditCount" aria-live="polite" style="font-size:0.74rem; color:var(--text-muted);"></span>
           <button class="close-btn" onclick="closeRawDataModal()">✕</button>
         </div>
       </div>
-      <div class="indicators-table-wrap" style="max-height:68vh; margin-bottom:0;">
+      <div class="indicators-table-wrap" role="region" aria-label="예측 및 실제 결과 로그" tabindex="0" style="max-height:64vh; margin-bottom:8px;">
         <table class="data-table">
           <thead>
             <tr>
@@ -536,6 +544,7 @@
           </tbody>
         </table>
       </div>
+      <div id="auditPager" style="display:flex; justify-content:center; align-items:center; gap:8px; padding-top:4px; font-size:0.75rem; color:var(--text-muted);"></div>
     </div>
   </div>
 
@@ -600,15 +609,38 @@
         }
       });
     }
+    let auditResFilter = 'all';
+    let auditPage = 1;
     function filterAuditRows(res) {
-      document.querySelectorAll('#auditTableBody tr').forEach(tr => {
-        if (res === 'all' || tr.dataset.res === res) {
-          tr.style.display = '';
-        } else {
-          tr.style.display = 'none';
-        }
-      });
+      auditResFilter = res;
+      applyAuditFilters(1);
     }
+    function applyAuditFilters(page) {
+      if (page) auditPage = page;
+      const q = (document.getElementById('auditSearch')?.value || '').trim().toLowerCase();
+      const size = parseInt(document.getElementById('auditPageSize')?.value || '25', 10);
+      const rows = Array.from(document.querySelectorAll('#auditTableBody tr'));
+      const matched = rows.filter(tr => {
+        const resOk = auditResFilter === 'all' || tr.dataset.res === auditResFilter;
+        const textOk = !q || tr.textContent.toLowerCase().includes(q);
+        return resOk && textOk;
+      });
+      const totalPages = Math.max(1, Math.ceil(matched.length / size));
+      if (auditPage > totalPages) auditPage = totalPages;
+      const start = (auditPage - 1) * size;
+      const end = start + size;
+      rows.forEach(tr => tr.style.display = 'none');
+      matched.slice(start, end).forEach(tr => tr.style.display = '');
+      const cnt = document.getElementById('auditCount');
+      if (cnt) cnt.textContent = `${matched.length}건`;
+      const pager = document.getElementById('auditPager');
+      if (pager) {
+        pager.innerHTML = totalPages > 1
+          ? `<button class="btn-rawdata" style="padding:2px 8px; font-size:0.72rem;" ${auditPage<=1?'disabled':''} onclick="applyAuditFilters(${auditPage-1})">◀</button><span>${auditPage} / ${totalPages}</span><button class="btn-rawdata" style="padding:2px 8px; font-size:0.72rem;" ${auditPage>=totalPages?'disabled':''} onclick="applyAuditFilters(${auditPage+1})">▶</button>`
+          : '';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => applyAuditFilters(1));
   </script>
 </body>
 </html>
