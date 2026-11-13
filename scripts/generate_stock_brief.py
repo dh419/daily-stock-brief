@@ -86,7 +86,7 @@ def render_band_meter(t, session):
         g_low = to_pct_pos(gap_low)
         g_high = to_pct_pos(gap_high)
         g_w = max(2.0, g_high - g_low)
-        gap_html = f'<div style="position:absolute; top:4px; bottom:4px; left:{g_low:.1f}%; width:{g_w:.1f}%; background:rgba(251, 191, 36, 0.45); border-left:2px solid #fbbf24; border-right:2px solid #fbbf24; border-radius:2px; z-index:7;" title="시초가: {gap_label}"></div>'
+        gap_html = f'<div style="position:absolute; top:4px; bottom:4px; left:{g_low:.1f}%; width:{g_w:.1f}%; background:rgba(56, 189, 248, 0.45); border-left:2px solid #38bdf8; border-right:2px solid #38bdf8; border-radius:2px; z-index:7;" title="시초가: {gap_label}"></div>'
 
     actual_html = ""
     is_hit = False
@@ -97,9 +97,12 @@ def render_band_meter(t, session):
         pin_class = "hit" if is_hit else "miss"
         actual_html = f'<div class="meter-actual-pin {pin_class}" style="left:{p_act:.1f}%;" title="실제: {actual_v:+.2f}%"></div>'
 
-    status_right = f'<span style="color:#fbbf24;">시초 {gap_label}</span>' if gap_label else '<span style="color:#94a3b8;">장중 대기</span>'
-    if actual_v is not None:
-        status_right = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>'
+    if session == 'morning':
+        left_legend = f'<span style="color:#38bdf8;">시초: {gap_label}</span>' if gap_label else '<span style="color:#94a3b8;">시초 대기</span>'
+        right_legend = f'<span style="color:#c7d2fe;">예측: {pred_label}</span>'
+    else:
+        left_legend = f'<span style="color:#c7d2fe;">예측: {pred_label}</span>'
+        right_legend = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>' if actual_v is not None else ''
 
     return f"""
       <div class="band-meter-wrap">
@@ -115,8 +118,8 @@ def render_band_meter(t, session):
           {actual_html}
         </div>
         <div class="meter-legend">
-          <span style="color:#a5b4fc;">예측: {pred_label}</span>
-          {status_right}
+          {left_legend}
+          {right_legend}
         </div>
       </div>
     """
@@ -347,15 +350,15 @@ def render_html(data, session, now_kst):
 
     ind_bar_html = f"""
     <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
-      <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-        <div style="position:relative; width:148px; height:148px; flex-shrink:0; margin:0 auto;">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:nowrap;">
+        <div style="position:relative; width:126px; height:126px; flex-shrink:0;">
           <svg viewBox="0 0 120 120" style="width:100%; height:100%;">
             {''.join(ind_slices)}
             <text x="60" y="57" text-anchor="middle" font-size="9" font-weight="bold" fill="#f87171">▲ {up_weight}%</text>
             <text x="60" y="70" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">▼ {down_weight}%</text>
           </svg>
         </div>
-        <div style="flex:1; min-width:190px; display:flex; flex-direction:column; gap:4px;">
+        <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">
           {''.join(ind_legends)}
         </div>
       </div>
