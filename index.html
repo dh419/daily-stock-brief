@@ -271,9 +271,9 @@
 
     function selectReport(id, path, title) {
       window.location.hash = id;
-      document.getElementById('viewer').src = path;
+      document.getElementById('viewer').src = path + '?t=' + Date.now();
       document.getElementById('activeTitle').textContent = title;
-      document.getElementById('rawLink').href = path;
+      document.getElementById('rawLink').href = path + '?t=' + Date.now();
       document.querySelectorAll('.report-item').forEach(el => el.classList.remove('active'));
       const activeEl = document.getElementById('item-' + id);
       if (activeEl) activeEl.classList.add('active');
