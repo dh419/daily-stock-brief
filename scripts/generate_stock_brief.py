@@ -45,25 +45,30 @@ def extract_single_pct(s):
 
 def render_band_meter(t, session):
     """
-    Renders the horizontal target band meter with a fixed 0.0% center line (-5% to +5% scale).
-    - Morning: Shows predicted band only (from t['band']), no actual pin.
-    - Evening: Shows morning predicted band (from t['gap']) AND actual close pin (from t['band']).
+    Renders the horizontal target band meter with a fixed 0.0% center line.
+    Dynamically scales to [-12%, +12%] if values exceed +/-5%, otherwise [-5%, +5%].
     """
-    def to_pct_pos(val, min_v=-5.0, max_v=5.0):
-        if val is None:
-            return None
-        clamped = max(min_v, min(max_v, val))
-        return ((clamped - min_v) / (max_v - min_v)) * 100.0
-
     if session == 'morning':
         low_v, high_v = extract_range_from_str(t.get('band', ''))
         actual_v = None
         pred_label = t.get('band', '-')
     else:
-        # Evening: morning prediction is in t['gap'], actual result is in t['band']
         low_v, high_v = extract_range_from_str(t.get('gap', ''))
         actual_v = extract_single_pct(t.get('band', ''))
         pred_label = t.get('gap', '-').replace('오전예측:', '').strip()
+
+    # Dynamic scale check
+    max_abs = 5.0
+    for v in (low_v, high_v, actual_v):
+        if v is not None and abs(v) > 5.0:
+            max_abs = 12.0
+            break
+
+    def to_pct_pos(val):
+        if val is None:
+            return None
+        clamped = max(-max_abs, min(max_abs, val))
+        return ((clamped + max_abs) / (2.0 * max_abs)) * 100.0
 
     band_html = ""
     if low_v is not None and high_v is not None:
@@ -81,16 +86,16 @@ def render_band_meter(t, session):
         pin_class = "hit" if is_hit else "miss"
         actual_html = f'<div class="meter-actual-pin {pin_class}" style="left:{p_act:.1f}%;" title="실제: {actual_v:+.2f}%"></div>'
 
-    status_right = '<span style="color:#94a3b8;">장중 진행 대기</span>'
+    status_right = '<span style="color:#94a3b8;">장중 대기</span>'
     if actual_v is not None:
-        status_right = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕ 적중" if is_hit else "❌ 이탈"})</span>'
+        status_right = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>'
 
     return f"""
       <div class="band-meter-wrap">
         <div class="meter-scale-header">
-          <span>-5.0%</span>
+          <span>-{max_abs:.0f}%</span>
           <span style="color:#e2e8f0; font-weight:800;">0.0%</span>
-          <span>+5.0%</span>
+          <span>+{max_abs:.0f}%</span>
         </div>
         <div class="meter-track">
           <div class="axis-zero"></div>
@@ -161,9 +166,13 @@ def render_quant_section_chart(history, field_key, title, color_accent):
             grid_html.append(f'<text x="{pad_l - 6}" y="{gy + 3:.1f}" text-anchor="end" font-size="10" fill="{lbl_col}" font-family="monospace" font-weight="bold">{label}</text>')
 
     bars_html = []
+    trend_pts = []
     total_pts = len(parsed_pts)
     for idx, (d_lbl, p_low, p_high, act_val, full_date, pred_str, act_str) in enumerate(parsed_pts):
         cx = pad_l + step_x * (idx + 0.5)
+        if act_val is not None:
+            ay = y_pos(act_val)
+            trend_pts.append(f"{cx:.1f},{ay:.1f}")
         
         is_hit = (act_val is not None and p_low is not None and p_high is not None and p_low <= act_val <= p_high)
         dot_col = "#10b981" if is_hit else "#ef4444"
@@ -194,6 +203,10 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         
         bars_html.append('</g>')
 
+    trend_line_html = ""
+    if len(trend_pts) > 1:
+        trend_line_html = f'<polyline fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5" points="{" ".join(trend_pts)}" />'
+
     return f"""
       <div style="margin-bottom:14px; background:{color_accent}22; border:1px solid {color_accent}; border-radius:12px; padding:10px 14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -202,6 +215,7 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         </div>
         <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
           {''.join(grid_html)}
+          {trend_line_html}
           {''.join(bars_html)}
         </svg>
       </div>
@@ -269,8 +283,8 @@ def render_html(data, session, now_kst):
             seg_col = '#3b82f6' # Korea market down = Blue
         else:
             seg_col = '#64748b'
-        short_name = ind['name'].split('.')[0].strip()[:8]
-        ind_bar_segments.append(f'<div style="width:{w_val}%; background:{seg_col}; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="{ind["name"]} ({w_val}%)">{w_val}%</div>')
+        short_name = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name']).split()[0][:6]
+        ind_bar_segments.append(f'<div style="width:{w_val}%; background:{seg_col}; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap; padding:0 2px;" title="{ind["name"]} ({w_val}%)">{short_name} {w_val}%</div>')
 
     ind_bar_html = f"""
     <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
