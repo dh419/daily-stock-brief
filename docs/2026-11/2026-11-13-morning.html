@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>미국 및 한국 증시 모닝 브리핑 (2026년 11월 13일 금요일) | AI Quantitative Stock Forecast</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --card-hover: #1e293b;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --up: #ef4444;      /* 한국 증시 상승: 빨간색 */
+      --up-soft: rgba(239, 68, 68, 0.15);
+      --down: #3b82f6;    /* 한국 증시 하락: 파란색 */
+      --down-soft: rgba(59, 130, 246, 0.15);
+      --neutral: #10b981; /* 적중/안정: 에메랄드 */
+      --neutral-soft: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.15);
+      --accent: #6366f1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1040px; margin: 0 auto; }
+
+    /* Header Bar */
+    header {
+      background: linear-gradient(135deg, #131d31 0%, #0d1527 100%);
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .badge-session {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: var(--card-border);
+      color: #e2e8f0;
+      border: 1px solid #334155;
+    }
+    .badge-session.morning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+    .badge-session.evening { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border-color: rgba(99, 102, 241, 0.3); }
+    .header-time { font-size: 0.82rem; color: var(--text-dim); }
+    h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; color: #fff; }
+    .header-summary { font-size: 0.93rem; color: #cbd5e1; line-height: 1.6; }
+
+    /* Key Macro Bar */
+    .macro-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .macro-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .macro-title { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .macro-val { font-size: 1.1rem; font-weight: 800; color: #fff; }
+    .macro-chg { font-size: 0.78rem; font-weight: 700; display: inline-block; margin-top: 2px; }
+    .chg-up { color: var(--up); }
+    .chg-down { color: var(--down); }
+    .chg-neutral { color: var(--text-muted); }
+
+    /* 3 Main Targets Band Visualizer */
+    .section-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin: 24px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fff;
+    }
+    .section-title span { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+    
+    .target-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .target-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      transition: border-color 0.15s;
+    }
+    .target-card:hover { border-color: #374151; }
+    .target-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .target-name { font-size: 1.1rem; font-weight: 800; }
+    .target-code { font-size: 0.78rem; color: var(--text-dim); margin-left: 4px; font-weight: normal; }
+    .target-gap { font-size: 0.8rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+    
+    /* Range Visualizer */
+    .band-meter {
+      margin: 12px 0 8px;
+      background: #1f2937;
+      border-radius: 8px;
+      height: 24px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      overflow: hidden;
+    }
+    .band-fill {
+      position: absolute;
+      left: 15%;
+      width: 70%;
+      height: 100%;
+      background: rgba(99, 102, 241, 0.25);
+      border-left: 2px solid #818cf8;
+      border-right: 2px solid #818cf8;
+    }
+    .band-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .target-desc {
+      font-size: 0.84rem;
+      color: #94a3b8;
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+
+    /* 6 Active Indicators Matrix */
+    .indicators-table-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      text-align: left;
+    }
+    table.data-table th {
+      background: #1e293b;
+      padding: 12px 14px;
+      font-weight: 700;
+      color: #cbd5e1;
+      border-bottom: 1px solid var(--card-border);
+      white-space: nowrap;
+    }
+    table.data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+      vertical-align: middle;
+    }
+    table.data-table tr:last-child td { border-bottom: none; }
+    .weight-pill {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+    }
+    .sig-badge {
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .sig-up { background: var(--up-soft); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .sig-down { background: var(--down-soft); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .sig-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    /* 13 Stock Grid */
+    .stocks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .stock-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .stock-card:hover { background: var(--card-hover); border-color: #3b82f6; }
+    .stock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .stock-name { font-size: 0.92rem; font-weight: 700; color: #fff; }
+    .stock-chg { font-size: 0.85rem; font-weight: 800; }
+    .stock-sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px; }
+    .stock-snippet {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.4;
+    }
+
+    /* Cumulative Binary Audit Table */
+    .audit-summary {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      background: #1e293b;
+      padding: 10px 16px;
+      border-radius: 10px;
+    }
+    .audit-stat { font-weight: 800; color: #fff; }
+    .eval-circle { font-size: 1.05rem; }
+
+    /* Modal for Stock Detail */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .close-btn {
+      background: #1f2937;
+      border: none;
+      color: #9ca3af;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .modal-link {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 8px 14px;
+      background: #2563eb;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px 0 12px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <span class="badge-session morning">☀️ 오전 모닝 브리핑 (07:30)</span>
+        <span class="header-time">2026-11-13 07:30 KST</span>
+      </div>
+      <h1>미국 및 한국 증시 모닝 브리핑 (2026년 11월 13일 금요일)</h1>
+      <p class="header-summary">간밤 뉴욕 증시는 젠슨 황 엔비디아 CEO 전격 자진 사임 발표와 미 국채 10년물 금리의 5.1% 돌파(5.106%) 여파로 일제히 숨고르기 하락 마감했습니다. 다만 어제 옵션만기일을 거치며 기관의 1조 원 프로그램 매물이 일단락되었고, 외국인의 3거래일 연속 순매수와 환율 안정(1,330원대)이 유지되고 있어 오늘 코스피는 5,300선 지지력을 확인하는 약보합 출발 후 하방 경직성을 시험할 것으로 예상됩니다.</p>
+    </header>
+
+    <!-- Top Key Macro Indicators -->
+    <div class="macro-strip">
+      
+      <div class="macro-card">
+        <div class="macro-title">다우존스 (Dow)</div>
+        <div class="macro-val">숨고르기</div>
+        <div class="macro-chg chg-down">-0.36%</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">S&P 500</div>
+        <div class="macro-val">약보합 마감</div>
+        <div class="macro-chg chg-down">-0.35%</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">나스닥 종합</div>
+        <div class="macro-val">엔비디아 충격</div>
+        <div class="macro-chg chg-down">-0.39%</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">필라델피아 반도체 (SOX)</div>
+        <div class="macro-val">10,506.70</div>
+        <div class="macro-chg chg-down">-0.54%</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">美 국채 10년물 금리</div>
+        <div class="macro-val">5.1060%</div>
+        <div class="macro-chg chg-up">+12.30bp</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">원·달러 환율 (NDF)</div>
+        <div class="macro-val">1,330.7원</div>
+        <div class="macro-chg chg-down">-2.9원 (NDF 1,328원)</div>
+      </div>
+    </div>
+
+    <!-- 3 Core Forecast Targets -->
+    <div class="section-title">
+      🎯 핵심 3대 축 당일 예상 등락 밴드 및 시초가 갭
+      <span>(이진 평가 ⭕/❌ 판정 대상)</span>
+    </div>
+    <div class="target-grid">
+      
+      <div class="target-card">
+        <div class="target-header">
+          <div class="target-name">코스피<span class="target-code">KOSPI</span></div>
+          <span class="target-gap" style="background:rgba(99,102,241,0.18); color:#a5b4fc;">시초가 -0.4% ~ -1.0%</span>
+        </div>
+        <div class="band-meter">
+          <div class="band-fill"></div>
+        </div>
+        <div class="band-labels">
+          <span>예상 밴드: <strong style="color:#fff;">-0.8% ~ +0.6% (5,300 ~ 5,375선)</strong></span>
+        </div>
+        <div class="target-desc">5,289 ~ 5,321선 약보합 출발 후 5,300선 지지력 테스트 및 반등 시도 예상</div>
+      </div>
+      <div class="target-card">
+        <div class="target-header">
+          <div class="target-name">삼성전자<span class="target-code">005930</span></div>
+          <span class="target-gap" style="background:rgba(99,102,241,0.18); color:#a5b4fc;">시초가 -0.5% ~ -1.2%</span>
+        </div>
+        <div class="band-meter">
+          <div class="band-fill"></div>
+        </div>
+        <div class="band-labels">
+          <span>예상 밴드: <strong style="color:#fff;">-0.8% ~ +1.5% (206,000 ~ 211,000원)</strong></span>
+        </div>
+        <div class="target-desc">205,500 ~ 207,000원 출발, '20만 전자' 견고한 방어 및 브로드컴·AMD 협력 부각</div>
+      </div>
+      <div class="target-card">
+        <div class="target-header">
+          <div class="target-name">SK하이닉스<span class="target-code">000660</span></div>
+          <span class="target-gap" style="background:rgba(99,102,241,0.18); color:#a5b4fc;">시초가 -1.5% ~ -3.0%</span>
+        </div>
+        <div class="band-meter">
+          <div class="band-fill"></div>
+        </div>
+        <div class="band-labels">
+          <span>예상 밴드: <strong style="color:#fff;">-2.5% ~ +1.0% (1,230,000 ~ 1,275,000원)</strong></span>
+        </div>
+        <div class="target-desc">엔비디아 사임 노이즈 소화 과정 후 빅테크 HBM 수주 기반 125만 원 지지력 검증</div>
+      </div>
+    </div>
+
+    <!-- 6 Active Indicators Matrix -->
+    <div class="section-title">
+      ⚖️ 6대 다이나믹 액티브 베이스 지표 (가중치 100%)
+      <span>(오후 마감 감사 시 설명력 저하 피처 퇴출 & 교체)</span>
+    </div>
+    <div class="indicators-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>선행 지표명</th>
+            <th>최신 확정 수치 및 시장 상태</th>
+            <th>가중치</th>
+            <th>방향성 시그널</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="font-weight:700; color:#fff;">엔비디아 젠슨 황 전격 사임 충격</td>
+            <td style="color:#cbd5e1;">젠슨 황 CEO 자진 사임 발표로 엔비디아 -4.3% 하락, CFO 임시 경영</td>
+            <td><span class="weight-pill">20%</span></td>
+            <td><span class="sig-badge sig-down">하방 (AI 칩 리더십 공백)</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#fff;">美 국채 10년물 금리 5.1% 돌파</td>
+            <td style="color:#cbd5e1;">10년물 금리 12.30bp 급등한 5.1060% 마감, 유가 반등 및 긴축 경계</td>
+            <td><span class="weight-pill">10%</span></td>
+            <td><span class="sig-badge sig-down">하방 (밸류에이션 부담)</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#fff;">기관 금융투자 옵션만기 매물 일단락</td>
+            <td style="color:#cbd5e1;">어제 9,908억 프로그램 매물 출회 완료에 따른 수급 공백 해소</td>
+            <td><span class="weight-pill">20%</span></td>
+            <td><span class="sig-badge sig-up">상방 (만기일 후폭풍 완화)</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#fff;">외국인 3거래일 연속 순매수 기조</td>
+            <td style="color:#cbd5e1;">외국인 어제 6,730억 순매수(3일간 약 2조 원 순유입 지속)</td>
+            <td><span class="weight-pill">20%</span></td>
+            <td><span class="sig-badge sig-up">상방 (수급 방어막 유지)</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#fff;">삼성전자 20만 전자 수성 및 밸류 지지</td>
+            <td style="color:#cbd5e1;">어제 208,000원(+0.97%) 안착, 214.8조 원 현금 기반 하방 경직성</td>
+            <td><span class="weight-pill">20%</span></td>
+            <td><span class="sig-badge sig-up">상방 (대장주 안전판)</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#fff;">원/달러 환율 4일 연속 하락 안정</td>
+            <td style="color:#cbd5e1;">어제 2.9원 내린 1,330.7원 마감, NDF 1,328원대 진입</td>
+            <td><span class="weight-pill">10%</span></td>
+            <td><span class="sig-badge sig-up">상방 (환율 하향 안정)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 13 Core Stocks Grid -->
+    <div class="section-title">
+      📊 국내외 13개 핵심 관심 종목 전수 동향
+      <span>(카드를 누르면 상세 분석 및 출처 확인)</span>
+    </div>
+    <div class="stocks-grid" id="stocksGrid">
+      
+      <div class="stock-card" onclick="openStockModal('삼성전자 (005930)', '208,000원 (+0.97%)', '젠슨 황 퇴진으로 인한 엔비디아 의존도 탈피 및 브로드컴·AMD 협력 부각 속에 안정적인 20만 원 선 안착 유력', 'https://kr.investing.com/news/stock-market-news/article-2171978')">
+        <div class="stock-header">
+          <span class="stock-name">삼성전자 (005930)</span>
+          <span class="stock-chg chg-up">+0.97%</span>
+        </div>
+        <div class="stock-sub">208,000원</div>
+        <div class="stock-snippet">젠슨 황 퇴진으로 인한 엔비디아 의존도 탈피 및 브로드컴·AMD 협력 부각 속에 안정적인 20만 원 선 안착 유력</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('SK하이닉스 (000660)', '1,262,000원 (-1.17%)', '단기 투자심리 위축으로 1~2%대 하락 출발 예상되나, 글로벌 빅테크향 HBM3E·HBM4 물량 유지로 124만 원대 반발 매수 기대', 'https://m.finance.daum.net/quotes/A000660/home')">
+        <div class="stock-header">
+          <span class="stock-name">SK하이닉스 (000660)</span>
+          <span class="stock-chg chg-down">-1.17%</span>
+        </div>
+        <div class="stock-sub">1,262,000원</div>
+        <div class="stock-snippet">단기 투자심리 위축으로 1~2%대 하락 출발 예상되나, 글로벌 빅테크향 HBM3E·HBM4 물량 유지로 124만 원대 반발 매수 기대</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('SK하이닉스 ADR (SKHY)', '$145.10 (-2.48%)', '뉴욕 시장에서 젠슨 황 사임 충격을 선반영하며 하락했으나 시간외에서는 낙폭 진정', 'https://kr.investing.com/news/stock-market-news/article-93CH-2156428')">
+        <div class="stock-header">
+          <span class="stock-name">SK하이닉스 ADR (SKHY)</span>
+          <span class="stock-chg chg-down">-2.48%</span>
+        </div>
+        <div class="stock-sub">$145.10</div>
+        <div class="stock-snippet">뉴욕 시장에서 젠슨 황 사임 충격을 선반영하며 하락했으나 시간외에서는 낙폭 진정</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('엔비디아 (NVDA)', '$165.40 (-4.30%)', '젠슨 황 CEO 공식 사임 및 콜레트 크레스 CFO 임시 경영 체제 전환으로 시총 4조 달러 및 170달러 선 붕괴', 'https://www.yna.co.kr/view/AKR20261113012051072')">
+        <div class="stock-header">
+          <span class="stock-name">엔비디아 (NVDA)</span>
+          <span class="stock-chg chg-down">-4.30%</span>
+        </div>
+        <div class="stock-sub">$165.40</div>
+        <div class="stock-snippet">젠슨 황 CEO 공식 사임 및 콜레트 크레스 CFO 임시 경영 체제 전환으로 시총 4조 달러 및 170달러 선 붕괴</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('테슬라 (TSLA)', '$382.10 (-0.70%)', '기술주 전반의 리더십 불안 속에 강보합권에서 약보합으로 전환 마감', 'https://www.infostockdaily.co.kr/news/articleView.html?idxno=218913')">
+        <div class="stock-header">
+          <span class="stock-name">테슬라 (TSLA)</span>
+          <span class="stock-chg chg-down">-0.70%</span>
+        </div>
+        <div class="stock-sub">$382.10</div>
+        <div class="stock-snippet">기술주 전반의 리더십 불안 속에 강보합권에서 약보합으로 전환 마감</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('알파벳 A (GOOGL)', '$288.20 (-0.41%)', '자체 AI 칩 텐서(TPU) 생태계 강화 기대감이 엔비디아 충격을 일부 상쇄하며 소폭 하락', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+        <div class="stock-header">
+          <span class="stock-name">알파벳 A (GOOGL)</span>
+          <span class="stock-chg chg-down">-0.41%</span>
+        </div>
+        <div class="stock-sub">$288.20</div>
+        <div class="stock-snippet">자체 AI 칩 텐서(TPU) 생태계 강화 기대감이 엔비디아 충격을 일부 상쇄하며 소폭 하락</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('메타 플랫폼스 (META)', '$698.50 (-0.38%)', '700달러 선 문턱에서 시장 전반의 긴축 경계감에 밀려 약보합세', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+        <div class="stock-header">
+          <span class="stock-name">메타 플랫폼스 (META)</span>
+          <span class="stock-chg chg-down">-0.38%</span>
+        </div>
+        <div class="stock-sub">$698.50</div>
+        <div class="stock-snippet">700달러 선 문턱에서 시장 전반의 긴축 경계감에 밀려 약보합세</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('아마존 (AMZN)', '$270.90 (-0.44%)', 'AWS 클라우드 자체 AI 인프라 확대 모멘텀 속에 270달러 선 방어', 'https://www.cbci.co.kr/news/articleView.html?idxno=626409')">
+        <div class="stock-header">
+          <span class="stock-name">아마존 (AMZN)</span>
+          <span class="stock-chg chg-down">-0.44%</span>
+        </div>
+        <div class="stock-sub">$270.90</div>
+        <div class="stock-snippet">AWS 클라우드 자체 AI 인프라 확대 모멘텀 속에 270달러 선 방어</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('마이크론 테크놀로지 (MU)', '$739.50 (-1.59%)', '전날 6%대 급등 이후 엔비디아 노이즈와 금리 상승 부담으로 1%대 숨고르기 조정', 'https://www.infostockdaily.co.kr/news/articleView.html?idxno=218913')">
+        <div class="stock-header">
+          <span class="stock-name">마이크론 테크놀로지 (MU)</span>
+          <span class="stock-chg chg-down">-1.59%</span>
+        </div>
+        <div class="stock-sub">$739.50</div>
+        <div class="stock-snippet">전날 6%대 급등 이후 엔비디아 노이즈와 금리 상승 부담으로 1%대 숨고르기 조정</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('팔란티어 (PLTR)', '$160.80 (-0.80%)', '160달러 선을 지켜내며 엔터프라이즈 AI 소프트웨어 수요 건재함 과시', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+        <div class="stock-header">
+          <span class="stock-name">팔란티어 (PLTR)</span>
+          <span class="stock-chg chg-down">-0.80%</span>
+        </div>
+        <div class="stock-sub">$160.80</div>
+        <div class="stock-snippet">160달러 선을 지켜내며 엔터프라이즈 AI 소프트웨어 수요 건재함 과시</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('GE 버노바 (GEV)', '$764.50 (-0.61%)', '데이터센터 전력 공급망 확충 기조 속에서 약보합권 안정적 매물 소화', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+        <div class="stock-header">
+          <span class="stock-name">GE 버노바 (GEV)</span>
+          <span class="stock-chg chg-down">-0.61%</span>
+        </div>
+        <div class="stock-sub">$764.50</div>
+        <div class="stock-snippet">데이터센터 전력 공급망 확충 기조 속에서 약보합권 안정적 매물 소화</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('블룸에너지 (BE)', '$26.20 (-1.50%)', '구글 702MW 전력 파트너십 급등 후 단기 차익 실현 매물로 소폭 하락', 'https://www.benzinga.com/trading-ideas/movers/26/11/62973002/bloom-energy-scores-major-role-in-googles-702-megawatt-power-project')">
+        <div class="stock-header">
+          <span class="stock-name">블룸에너지 (BE)</span>
+          <span class="stock-chg chg-down">-1.50%</span>
+        </div>
+        <div class="stock-sub">$26.20</div>
+        <div class="stock-snippet">구글 702MW 전력 파트너십 급등 후 단기 차익 실현 매물로 소폭 하락</div>
+      </div>
+      <div class="stock-card" onclick="openStockModal('웨스턴 디지털 (WDC)', '$382.40 (-1.24%)', '반도체 섹터 전반의 숨고르기 흐름 속에 380달러 선 수성', 'https://on.edaily.co.kr/Club/InvestView_V2?number=23130')">
+        <div class="stock-header">
+          <span class="stock-name">웨스턴 디지털 (WDC)</span>
+          <span class="stock-chg chg-down">-1.24%</span>
+        </div>
+        <div class="stock-sub">$382.40</div>
+        <div class="stock-snippet">반도체 섹터 전반의 숨고르기 흐름 속에 380달러 선 수성</div>
+      </div>
+    </div>
+
+    <!-- Cumulative Binary Evaluation Table -->
+    <div class="section-title">
+      📈 최근 1개월 누적 예측 vs 실제 결과 비교표 (엄격한 이진 평가)
+      <span>(부분적중 제외, 3개 대상 전원 밴드 안착 시에만 ⭕)</span>
+    </div>
+    <div class="audit-summary">
+      <div>누적 성적: <span class="audit-stat">24회 중 적중(⭕) 8회 / 실패(❌) 16회</span></div>
+      <div>적중률: <span class="audit-stat" style="color:#fbbf24;">33.3%</span></div>
+    </div>
+    <div class="indicators-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>일자</th>
+            <th>코스피 (예측/실제)</th>
+            <th>삼성전자 (예측/실제)</th>
+            <th>SK하이닉스 (예측/실제)</th>
+            <th style="text-align:center;">판정</th>
+            <th>핵심 결과 및 오차 사유</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.12 (목)</td>
+            <td>+1.2%~+2.8% / -0.61%</td>
+            <td>+1.2%~+3.5% / +0.97%</td>
+            <td>+2.0%~+5.5% / -1.17%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">반도체 상승 전망했으나 옵션만기 기관 9,908억 프로그램 매물 및 젠슨 황 해임설 2차 파장으로 하방 이탈</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.11 (수)</td>
+            <td>-1.0%~+0.5% / +2.60%</td>
+            <td>-1.2%~+1.0% / +3.57%</td>
+            <td>-2.0%~+1.5% / +5.36%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">美 CPI 금리 우려로 숨고르기 예상했으나 코어위브 호실적 및 외인 반도체 폭풍 매수로 폭등 상단 이탈</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.10 (화)</td>
+            <td>+1.5%~+3.0% / +4.39%</td>
+            <td>+1.2%~+3.5% / +4.74%</td>
+            <td>+2.0%~+5.5% / +6.69%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">반등 방향은 정확했으나 외인 8일 만의 매수 전환 및 매수 사이드카 발동으로 예측 상단 초과 폭등</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.09 (월)</td>
+            <td>+1.2%~+2.8% / -0.81%</td>
+            <td>+1.2%~+3.8% / +0.64%</td>
+            <td>+3.0%~+6.5% / +0.35%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">장중 5,170선(+2.2%) 급반등했으나 외인 8,647억 연속 매도 및 바이오(-16%) 폭락에 종가 하방 이탈</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.06 (금)</td>
+            <td>-0.5%~+0.5% / -6.02%</td>
+            <td>-0.8%~+0.5% / -6.35%</td>
+            <td>-1.0%~+0.8% / -10.44%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">지지선 형성 전망했으나 외인 2.77조 투매 및 서킷브레이커 폭락 오판</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.05 (목)</td>
+            <td>+0.3%~+0.8% / -5.28%</td>
+            <td>+0.4%~+1.0% / -7.02%</td>
+            <td>+0.5%~+1.5% / -9.15%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 의회 선거 결과 여파로 촉발된 AI 규제 우려 및 패닉 셀링 오판</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.04 (수)</td>
+            <td>+0.4%~+1.0% / -0.55%</td>
+            <td>+0.5%~+1.2% / -0.70%</td>
+            <td>+0.8%~+1.8% / -1.10%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">선거 랠리 기대했으나 개표 불확실성에 따른 위험자산 회피 오판</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.03 (화)</td>
+            <td>-0.2%~+0.5% / +0.15%</td>
+            <td>-0.3%~+0.6% / +0.30%</td>
+            <td>-0.5%~+0.8% / +0.25%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 중간선거 관망세 속 보합권 숨고르기 장세 밴드 적중</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">11.02 (월)</td>
+            <td>+0.8%~+1.5% / +2.24%</td>
+            <td>+1.0%~+2.0% / +2.85%</td>
+            <td>+1.5%~+3.0% / +3.40%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">11월 첫 거래일 반등 예상했으나 2% 넘는 폭등세로 예측 상단 초과 이탈</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.30 (금)</td>
+            <td>-0.5%~-1.2% / -1.35%</td>
+            <td>-0.8%~-1.6% / -1.75%</td>
+            <td>-1.5%~-2.5% / -2.85%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">월말 윈도우 드레싱 기대 대비 외인/기관 동반 투매로 하방 이탈</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.29 (목)</td>
+            <td>+0.4%~+0.9% / -0.65%</td>
+            <td>+0.5%~+1.1% / -1.15%</td>
+            <td>+0.8%~+1.8% / -1.50%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 증시 호조에도 불구, 국내 반도체 차익 실현 매물 폭탄 오판</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.28 (수)</td>
+            <td>-0.4%~+0.2% / +0.95%</td>
+            <td>-0.5%~+0.5% / +1.40%</td>
+            <td>-0.8%~+0.5% / +1.85%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">보합 전망했으나 주요 기업 실적 서프라이즈로 장중 급반등</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.27 (화)</td>
+            <td>+0.3%~+0.8% / -0.45%</td>
+            <td>+0.4%~+1.0% / -0.80%</td>
+            <td>+0.5%~+1.5% / -0.95%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">외환시장 원화 약세 심화로 외인 장중 순매도 전환 오판</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.26 (월)</td>
+            <td>+0.5%~+1.1% / +0.82%</td>
+            <td>+0.6%~+1.4% / +0.95%</td>
+            <td>+1.2%~+2.2% / +1.75%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">뉴욕 증시 강세 연동 및 기관 저가 매수 유입 적중</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.23 (금)</td>
+            <td>+0.4%~+1.0% / +0.15%</td>
+            <td>+0.5%~+1.2% / -0.25%</td>
+            <td>+0.8%~+1.8% / +0.40%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">저가 매수 유입 예상했으나 주말 앞둔 리스크 회피 매물 출회</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.22 (목)</td>
+            <td>-0.6%~-1.2% / -1.05%</td>
+            <td>-0.8%~-1.5% / -1.35%</td>
+            <td>-1.2%~-2.2% / -1.90%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 국채 금리 재반등 및 외인 현물 매도 공세 하방 적중</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.21 (수)</td>
+            <td>-0.2%~+0.4% / -0.75%</td>
+            <td>-0.5%~+0.3% / -1.20%</td>
+            <td>-0.5%~+0.8% / -1.45%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 빅테크 실적 관망세에 따른 차익 실현 매물 출회 오판</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.20 (화)</td>
+            <td>+0.2%~+0.7% / +0.45%</td>
+            <td>+0.3%~+0.9% / +0.60%</td>
+            <td>+0.5%~+1.5% / +0.80%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">호실적 기대감 유지 속 상승 밴드 내 안착 적중</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.19 (월)</td>
+            <td>+0.6%~+1.2% / +0.95%</td>
+            <td>+0.8%~+1.5% / +1.15%</td>
+            <td>+1.5%~+2.5% / +2.05%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">주말 실적 기대감 및 반도체 업종 저가 매수세 유입 적중</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.16 (금)</td>
+            <td>+0.3%~+0.8% / +0.12%</td>
+            <td>+0.2%~+0.7% / -0.40%</td>
+            <td>+0.5%~+1.5% / +0.20%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">삼성전자 외인 추가 매도세로 상승 전환 실패 및 보합세 하회</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.15 (목)</td>
+            <td>-0.5%~-1.2% / -0.92%</td>
+            <td>-0.8%~-1.5% / -1.05%</td>
+            <td>-1.5%~-2.5% / -2.10%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">금리 상승 여파와 기술주 조정 지속 하방 밴드 적중</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.14 (수)</td>
+            <td>+0.5%~+1.0% / -0.85%</td>
+            <td>+0.8%~+1.5% / -1.10%</td>
+            <td>+1.2%~+2.2% / -1.65%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 국채 10년물 금리 급등에 따른 외인 대량 매도 전환 오판</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.13 (화)</td>
+            <td>-0.3%~+0.3% / -0.21%</td>
+            <td>-0.5%~+0.5% / -0.15%</td>
+            <td>-1.0%~+1.0% / +0.30%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">금리 부담에 따른 보합권 박스권 등락 밴드 내 마감 적중</td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; white-space:nowrap;">10.12 (월)</td>
+            <td>+0.4%~+0.9% / +0.68%</td>
+            <td>+0.5%~+1.2% / +0.85%</td>
+            <td>+1.0%~+2.0% / +1.42%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">주말 미 증시 반등 훈풍 및 반도체 투톱 동반 상승 적중</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer>
+      🤖 Powered by Gemini 4 Hydrogen · Automated by GitHub Actions &amp; GitHub Pages<br>
+      본 리포트는 정량적 통계 및 선행 지표 가중치 모델에 기반한 시장 예측 분석으로, 투자 권유가 아니며 모든 투자의 책임은 본인에게 있습니다.
+    </footer>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-backdrop" id="stockModal" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalStockName" style="font-size:1.2rem; color:#fff;"></h3>
+          <div id="modalStockPrice" style="font-size:0.95rem; font-weight:700; margin-top:2px;"></div>
+        </div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div id="modalStockDesc" style="font-size:0.88rem; color:#cbd5e1; line-height:1.6; margin-top:10px;"></div>
+      <div style="margin-top:16px;">
+        <a id="modalStockLink" class="modal-link" target="_blank" rel="noopener">📰 원문 기사 / 데이터 출처 보기</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openStockModal(name, price, desc, link) {
+      document.getElementById('modalStockName').textContent = name;
+      document.getElementById('modalStockPrice').textContent = price;
+      document.getElementById('modalStockDesc').textContent = desc;
+      const linkEl = document.getElementById('modalStockLink');
+      if (link) {
+        linkEl.href = link;
+        linkEl.style.display = 'inline-block';
+      } else {
+        linkEl.style.display = 'none';
+      }
+      document.getElementById('stockModal').classList.add('open');
+    }
+    function closeModal() {
+      document.getElementById('stockModal').classList.remove('open');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+name: Generate and Publish Daily Stock Brief
+
+on:
+  schedule:
+    # 매일 오전 07:30 KST (UTC 전일 22:30) 모닝 브리핑
+    - cron: '30 22 * * *'
+    # 매일 오후 18:00 KST (UTC 당일 09:00) 마감 분석 리포트
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      session:
+        description: '브리핑 회차 선택 (morning: 오전 07:30 / evening: 오후 18:00)'
+        required: true
+        default: 'morning'
+        type: choice
+        options:
+          - 'morning'
+          - 'evening'
+      model:
+        description: 'Gemini 모델 선택'
+        required: false
+        default: 'gemini-4-hydrogen'
+        type: choice
+        options:
+          - 'gemini-4-hydrogen'
+          - 'gemini-3.8-flash'
+          - 'gemini-3.5-flash-lite'
+          - 'gemini-3.5-flash'
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Google GenAI SDK
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-genai
+
+      - name: Determine Session
+        id: determine
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "session=${{ inputs.session }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "30 22 * * *" ]; then
+            echo "session=morning" >> $GITHUB_OUTPUT
+          else
+            echo "session=evening" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Gemini Stock Brief Engine
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API || secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ inputs.model || 'gemini-4-hydrogen' }}
+          THINKING_BUDGET: '2048'
+        run: |
+          python scripts/generate_stock_brief.py --session ${{ steps.determine.outputs.session }}
+
+      - name: Update Hub Index Data
+        run: |
+          python scripts/update_index.py
+
+      - name: Commit and Push to Pages
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/ hub-data.json audit_history.json
+          git diff --staged --quiet || (git commit -m "chore(stock): publish ${{ steps.determine.outputs.session }} brief [$(date +%Y-%m-%d)]" && git push)
