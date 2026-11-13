@@ -272,15 +272,20 @@ def render_html(data, session, now_kst):
         <div class="target-desc" style="color:#e2e8f0;">{t['desc']}</div>
       </div>"""
 
-    # Indicators Stacked Share Bar + Sentiment Meter (Linked by #index)
-    ind_bar_segments = []
+    # Indicators Donut (Pie) Chart + Linked Legend (Zero text overflow on mobile!)
+    import math
+    ind_slices = []
+    ind_legends = []
     up_weight = 0
     down_weight = 0
+    total_w = 0
+    active_inds = []
     for idx, ind in enumerate(data.get('indicators', []), start=1):
         w_match = re.search(r'(\d+)', str(ind.get('weight', '0')))
         w_val = int(w_match.group(1)) if w_match else 0
         if w_val <= 0:
             continue
+        total_w += w_val
         s_dir = ind.get('signalDir', 'neutral')
         if s_dir == 'up':
             up_weight += w_val
@@ -290,20 +295,58 @@ def render_html(data, session, now_kst):
             seg_col = '#3b82f6'
         else:
             seg_col = '#64748b'
-        ind_bar_segments.append(f'<div onclick="focusIndicator(\'ind-{idx}\')" style="cursor:pointer; width:{w_val}%; background:{seg_col}; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="{ind["name"]} ({w_val}%)">#{idx} {w_val}%</div>')
+        active_inds.append((idx, ind, w_val, seg_col))
+
+    if active_inds and total_w > 0:
+        cx, cy, r_out, r_in = 60, 60, 52, 30
+        start_deg = -90.0
+        for idx, ind, w_val, seg_col in active_inds:
+            sweep = (w_val / total_w) * 360.0
+            end_deg = start_deg + sweep
+            rad1 = math.radians(start_deg)
+            rad2 = math.radians(end_deg)
+            x1_o, y1_o = cx + r_out * math.cos(rad1), cy + r_out * math.sin(rad1)
+            x2_o, y2_o = cx + r_out * math.cos(rad2), cy + r_out * math.sin(rad2)
+            x1_i, y1_i = cx + r_in * math.cos(rad2), cy + r_in * math.sin(rad2)
+            x2_i, y2_i = cx + r_in * math.cos(rad1), cy + r_in * math.sin(rad1)
+            large_arc = 1 if sweep > 180 else 0
+            
+            d_path = f"M {x1_o:.1f} {y1_o:.1f} A {r_out} {r_out} 0 {large_arc} 1 {x2_o:.1f} {y2_o:.1f} L {x1_i:.1f} {y1_i:.1f} A {r_in} {r_in} 0 {large_arc} 0 {x2_i:.1f} {y2_i:.1f} Z"
+            ind_slices.append(f'<path d="{d_path}" fill="{seg_col}" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="focusIndicator(\'ind-{idx}\')" />')
+            
+            # Label inside slice
+            mid_rad = math.radians(start_deg + sweep / 2.0)
+            lx = cx + ((r_out + r_in) / 2.0) * math.cos(mid_rad)
+            ly = cy + ((r_out + r_in) / 2.0) * math.sin(mid_rad)
+            ind_slices.append(f'<text x="{lx:.1f}" y="{ly + 3:.1f}" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">#{idx}</text>')
+            start_deg = end_deg
+
+            short_kw = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name'])[:8]
+            ind_legends.append(f'''
+              <div onclick="focusIndicator('ind-{idx}')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+                <div style="display:flex; align-items:center; gap:5px; overflow:hidden;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:{seg_col}; flex-shrink:0;"></span>
+                  <span style="color:#94a3b8; font-weight:700;">#{idx}</span>
+                  <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{short_kw}</span>
+                </div>
+                <span style="color:#fff; font-weight:800; flex-shrink:0;">{w_val}%</span>
+              </div>
+            ''')
 
     ind_bar_html = f"""
-    <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
-      <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700; margin-bottom:6px;">
-        <span style="color:#f87171;">▲ 상방 압력 {up_weight}%</span>
-        <span style="color:#cbd5e1;">가중치 100% 점유율</span>
-        <span style="color:#60a5fa;">▼ 하방 압력 {down_weight}%</span>
+    <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+      <div style="position:relative; width:120px; height:120px; flex-shrink:0; margin:0 auto;">
+        <svg viewBox="0 0 120 120" style="width:100%; height:100%;">
+          {''.join(ind_slices)}
+          <text x="60" y="57" text-anchor="middle" font-size="9" font-weight="bold" fill="#f87171">▲ {up_weight}%</text>
+          <text x="60" y="70" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">▼ {down_weight}%</text>
+        </svg>
       </div>
-      <div style="display:flex; height:24px; border-radius:6px; overflow:hidden; background:#1e293b;">
-        {''.join(ind_bar_segments)}
+      <div style="flex:1; min-width:190px; display:flex; flex-direction:column; gap:4px;">
+        {''.join(ind_legends)}
       </div>
     </div>
-    """ if ind_bar_segments else ""
+    """ if ind_slices else ""
 
     # Indicators Mobile-friendly Cards with Audit Status Color Coding & #index Link
     ind_html = ""
