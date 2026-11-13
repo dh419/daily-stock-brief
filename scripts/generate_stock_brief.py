@@ -501,3 +501,172 @@ def render_html(data, session, now_kst):
     html = html.replace('{{AUDIT_ROWS_HTML}}', audit_html)
 
     return html
+
+def get_session_prompt(session, now_kst):
+    date_str = now_kst.strftime('%Y-%m-%d')
+    weekday_ko = ['월', '화', '수', '목', '금', '토', '일'][now_kst.weekday()]
+    
+    audit_context = ""
+    if os.path.exists(AUDIT_HISTORY_PATH):
+        with open(AUDIT_HISTORY_PATH, 'r', encoding='utf-8') as f:
+            history = json.load(f)
+            audit_context = f"\n[최근 누적 예측 vs 실제 이진 판정 기록 (최근 {len(history)}일)]\n" + json.dumps(history[-25:], ensure_ascii=False)
+
+    if session == 'morning':
+        session_desc = f"개장 브리핑 (매일 07:00 KST) - {date_str} ({weekday_ko})"
+        task_focus = """
+[핵심 임무: 규칙 기반 퀀트 예측 (감에 의한 숫자 찍기 금지)]
+다음 3단계 정량 공식을 반드시 순서대로 수행하여 예측 밴드를 산출하세요:
+
+Step 1. 4대 정량 축 기반 6대 선행 지표 실제 수치 수집 및 스코어링 (가중치 총합 100%)
+  - ① 해외 선행(25%): MSCI 한국 ETF(EWY) 등락률 & 코스피200 야간선물
+  - ② 반도체 동조(20%): 필라델피아 반도체(SOX), 마이크론(MU), SK하이닉스 ADR(SKHY), 엔비디아(NVDA)
+  - ③ 역외 외환(15%): 뉴욕 NDF 원/달러 1개월물 변동폭 (서울 종가 대비 상승 시 하방, 하락 시 상방)
+  - ④ 글로벌 금리/변동성(15%): 미 국채 10년물 금리 변동폭(bp) & VIX 지수 레벨
+  - ⑤ 외국인 추세 수급(15%): 최근 3거래일 외국인 코스피 현·선물 누적 순매수 방향
+  - ⑥ 국내 수급 이벤트(10%): 프로그램 매매, 옵션만기, 자사주 매입 등 수급 왜곡 요인
+  * 각 지표별로 상방(+1), 중립(0), 하방(-1)을 판정하고 가중치를 곱해 종합 시장 점수 S (-100 ~ +100점)를 계산하세요.
+
+Step 2. 최근 5거래일 변동성(ATR) 기반 동적 밴드 폭(W) 결정 [과신 방지 규칙]
+  - 최근 5거래일 중 하루라도 코스피 ±2.0% 이상 급등락이 있었다면 '고변동장'으로 분류하여 밴드 폭(W)을 최소 ±1.5% ~ ±2.5%(전체 폭 3.0%p 이상)로 넓게 잡으세요.
+  - 평온장(±1% 이내 횡보)일 때만 ±0.8% ~ ±1.0%로 좁히세요.
+  - [편향 방지]: 전일 외국인이 3,000억 이상 순매도했거나 NDF 환율이 +5원 이상 급등했다면, 간밤 미 증시가 올랐더라도 상방 점수를 절반으로 깎으세요.
+
+Step 3. 종목별 베타(Beta) 차등 적용 및 최종 밴드 산출
+  - 코스피(Beta 1.0), 삼성전자(Beta 1.2), SK하이닉스(Beta 1.8)의 변동성 차이를 반영해 [시초가 갭%]와 [장중 예측 밴드%]를 산출하세요.
+  - 13개 핵심 관심 종목(삼성전자, SK하이닉스, SKHY, NVDA, TSLA, GOOGL, META, AMZN, MU, PLTR, GEV, BE, WDC)의 최신 등락률과 핵심 이슈를 전수 수집하세요.
+"""
+    else:
+        session_desc = f"마감 분석 리포트 (매일 19:00 KST) - {date_str} ({weekday_ko})"
+        task_focus = """
+[핵심 임무: 이진 평가 감사(Audit) 및 오차 원인 정량 분류]
+1. 당일 마감된 국내 증시(코스피, 코스닥 종가 및 등락률), 외국인/기관 순매수 금액, 서울 외환시장 원/달러 환율 종가, 삼성전자·SK하이닉스 마감 종가, 유럽 증시 및 미국 프리마켓 동향을 실시간 검색하세요.
+2. 오늘 개장 브리핑의 코스피·삼성전자·SK하이닉스 예측 밴드와 실제 종가를 대조하여 **엄격한 이진 판정(⭕ 적중 또는 ❌ 실패, 부분적중 없음)**을 내리세요.
+3. 실패(❌) 시 오차의 주원인을 반드시 **[① 방향성 오판(상방/하방 반대)]** 또는 **[② 변동성 과소평가(방향은 맞았으나 밴드 폭 초과)]**로 분류하고, 설명력을 상실한 지표를 퇴출(Discard)한 뒤 신규 선행 지표를 편입(Replace)하여 다음 거래일 6대 지표 세트를 확정하세요.
+4. 국내외 13개 핵심 관심 종목의 최신 마감/프리마켓 동향을 전수 수집하세요.
+"""
+
+    prompt = f"""
+당신은 한국 및 미국 증시, 매크로 경제, AI/반도체 밸류체인을 전담하는 퀀트 투자 애널리스트입니다.
+지금은 {session_desc} 시점입니다.
+
+실시간 구글 검색을 활용하여 최신 시장 데이터와 외신·국내 뉴스를 수집하고, 반드시 아래 JSON 스키마 규격으로만 응답하세요 (마크다운 코드블록 없이 순수 JSON만 출력):
+
+{task_focus}
+{audit_context}
+
+반드시 준수할 JSON 출력 스키마:
+{{
+  "reportTitle": "{now_kst.strftime('%m.%d')}({weekday_ko}) {'개장 브리핑' if session == 'morning' else '마감 & 지표 감사'}",
+  "executiveSummary": "핵심 지수 마감/예측 요약 및 당일 핵심 관전 포인트 2줄 요약",
+  "macroCards": [
+    {{ "title": "다우존스 / S&P500 / 나스닥 / SOX / 美10년물 / 원·달러 등 6개", "value": "현재 수치", "change": "+0.54% 또는 -1.20%", "direction": "up 또는 down 또는 neutral" }}
+  ],
+  "targets": [
+    {{
+      "name": "코스피 / 삼성전자 / SK하이닉스 (반드시 이 3개 순서대로)",
+      "code": "KOSPI / 005930 / 000660",
+      "gap": "{'시초가 -0.4% ~ -1.0%' if session == 'morning' else '오전예측: -0.8% ~ +0.6%'}",
+      "band": "{'-0.8% ~ +0.6%' if session == 'morning' else '실제: -0.98% (❌ 실패)'}",
+      "desc": "예상 지수/주가 밴드 및 지지·저항 핵심 코멘트 (2줄 이내)"
+    }}
+  ],
+  "indicators": [
+    {{
+      "name": "{'[유지] ' if session == 'evening' else ''}지표명 (6개)",
+      "detail": "최신 확정 수치 및 상태 요약",
+      "weight": "20%",
+      "signalText": "상방 / 하방 / 중립 + 짧은 사유",
+      "signalDir": "up 또는 down 또는 neutral"
+    }}
+  ],
+  "stocks": [
+    {{
+      "name": "종목명 (예: 삼성전자 (005930))",
+      "price": "현재가/종가 (예: 208,000원)",
+      "change": "+0.97%",
+      "direction": "up 또는 down 또는 neutral",
+      "summary": "핵심 이슈 및 수급 코멘트 2줄",
+      "url": "관련 뉴스 또는 시세 출처 URL"
+    }}
+  ],
+  "todayAudit": {{
+    "date": "{now_kst.strftime('%m.%d')} ({weekday_ko})",
+    "kospi": "예측 / 실제",
+    "samsung": "예측 / 실제",
+    "skhynix": "예측 / 실제",
+    "result": "⭕ 또는 ❌ (오전이면 '대기')",
+    "reason": "결과 및 오차 사유"
+  }}
+}}
+"""
+    return prompt
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--session', choices=['morning', 'evening'], default='morning')
+    args = parser.parse_args()
+
+    if not GEMINI_API_KEY:
+        raise ValueError("GEMINI_API_KEY environment variable is missing.")
+
+    now_kst = datetime.now(KST)
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    prompt = get_session_prompt(args.session, now_kst)
+
+    candidate_models = [
+        GEMINI_MODEL,
+        'gemini-4-hydrogen',
+        'gemini-3.8-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-3.5-flash'
+    ]
+    seen = set()
+    models_to_try = [m for m in candidate_models if not (m in seen or seen.add(m))]
+
+    response = None
+    last_err = None
+    for model_name in models_to_try:
+        try:
+            print(f"Trying Gemini model '{model_name}'...")
+            config_args = {
+                'tools': [types.Tool(google_search=types.GoogleSearch())],
+                'temperature': 0.2,
+            }
+            if THINKING_BUDGET > 0:
+                config_args['thinking_config'] = types.ThinkingConfig(thinking_budget=THINKING_BUDGET)
+
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(**config_args),
+            )
+            print(f"Success with model: {model_name}")
+            break
+        except Exception as e:
+            print(f"Model '{model_name}' failed: {e}")
+            last_err = e
+            time.sleep(3)
+
+    if not response:
+        raise RuntimeError(f"All model attempts failed: {last_err}")
+
+    raw_text = response.text.strip()
+    raw_text = re.sub(r'^```(?:json)?\s*', '', raw_text)
+    raw_text = re.sub(r'\s*```$', '', raw_text)
+    data = json.loads(raw_text)
+
+    html = render_html(data, args.session, now_kst)
+    
+    month_dir = os.path.join(DOCS_DIR, now_kst.strftime('%Y-%m'))
+    os.makedirs(month_dir, exist_ok=True)
+    out_file = os.path.join(month_dir, f"{now_kst.strftime('%Y-%m-%d')}-{args.session}.html")
+    
+    with open(out_file, 'w', encoding='utf-8') as f:
+        f.write(html)
+
+    print(f"Successfully generated stock brief: {out_file}")
+
+if __name__ == '__main__':
+    main()
+
