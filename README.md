@@ -12,3 +12,9 @@
 - `scripts/generate_stock_brief.py`: 데이터 수집, 차트 렌더링, HTML 리포트 생성 스크립트
 - `templates/master_report.html`: 리포트 마스터 HTML 템플릿
 - `docs/YYYY-MM/`: 생성된 일별 오전·오후 리포트 HTML (`GitHub Pages` 배포 대상)
+
+## 오전/오후 브리핑 고도화 스킬 체이닝 (Multi-Skill Pipeline)
+오전(장전)·오후(장후) 주식 브리핑 생성 시 아래 3개 전역 스킬을 유기적으로 복합 발동합니다:
+1. **`yfinance-data`**: 코스피(`^KS11`), 삼성전자(`005930.KS`), SK하이닉스(`000660.KS`), 환율(`KRW=X`), 미 국채 10년물(`^TNX`), 유가(`CL=F`) 실시간 시세·거래량 수집
+2. **`stock-analysis`**: 13개 관심 종목 및 3대 축의 밸류에이션·추세·리스크 정량 코멘트 고도화
+3. **`news-aggregator-skill`**: 장전/장후 핵심 글로벌·국내 증시 속보 및 이슈 큐레이션 반영
