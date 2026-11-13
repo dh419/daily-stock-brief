@@ -231,18 +231,24 @@ def render_html(data, session, now_kst):
         <div class="macro-chg {cls}">{m['change']}</div>
       </div>"""
 
-    # Target Cards with explicit 0% Axis Meter
+    # Target Cards with explicit 0% Axis Meter & Signature Colors
     target_html = ""
     for t in data.get('targets', []):
         meter_html = render_band_meter(t, session)
+        t_col = '#10b981' # KOSPI Emerald
+        if '삼성전자' in t['name'] or '005930' in t['code']:
+            t_col = '#2563eb' # Samsung Blue
+        elif 'SK하이닉스' in t['name'] or '000660' in t['code']:
+            t_col = '#EA002C' # SK Red
+
         target_html += f"""
-      <div class="target-card">
+      <div class="target-card" style="background: {t_col}24; border: 1px solid {t_col};">
         <div class="target-header">
-          <div class="target-name">{t['name']}<span class="target-code">{t['code']}</span></div>
-          <span class="target-gap" style="background:rgba(99,102,241,0.18); color:#a5b4fc;">{t['gap']}</span>
+          <div class="target-name" style="color:#ffffff;">{t['name']}<span class="target-code" style="color:#cbd5e1;">{t['code']}</span></div>
+          <span class="target-gap" style="background:{t_col}40; color:#ffffff; border:1px solid {t_col}80;">{t['gap']}</span>
         </div>
         {meter_html}
-        <div class="target-desc">{t['desc']}</div>
+        <div class="target-desc" style="color:#e2e8f0;">{t['desc']}</div>
       </div>"""
 
     # Indicators Stacked Share Bar + Sentiment Meter
