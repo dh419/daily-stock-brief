@@ -198,13 +198,8 @@ def render_quant_section_chart(history, field_key, title, color_accent):
       <div style="margin-bottom:14px; background:#0f172a; border:1px solid {color_accent}40; border-radius:12px; padding:10px 14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
           <span style="font-size:0.9rem; font-weight:800; color:{color_accent};">{title}</span>
-          <span style="font-size:0.72rem; color:#94a3b8;">
-            <span style="display:inline-block; width:8px; height:8px; background:{color_accent}; opacity:0.6; border:1px solid {color_accent}; border-radius:2px; vertical-align:middle;"></span> 예측 &nbsp;
-            <span style="color:#10b981;">●</span> 적중 &nbsp;
-            <span style="color:#ef4444;">●</span> 이탈
-          </span>
+          <span class="chart-tip-bar" style="font-size:0.74rem; color:#94a3b8; font-weight:600;"></span>
         </div>
-        <div class="chart-tip-bar" style="font-size:0.75rem; color:#e2e8f0; min-height:18px; margin-bottom:2px;">👆 막대/점을 터치하면 상세 날짜·수치가 표시됩니다.</div>
         <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
           {''.join(grid_html)}
           {''.join(bars_html)}
@@ -216,9 +211,9 @@ def render_timeline_svg(history):
     if not history:
         return '<div style="color:var(--text-dim); text-align:center; padding:20px;">누적 기록이 없습니다.</div>'
     
-    c1 = render_quant_section_chart(history, 'kospi', '1️⃣ 코스피 (KOSPI)', '#10b981')
-    c2 = render_quant_section_chart(history, 'samsung', '2️⃣ 삼성전자 (005930)', '#1428A0') # Samsung Signature Blue (brightened slightly for dark bg: #3b82f6 / #1d4ed8 -> #3b82f6)
-    c3 = render_quant_section_chart(history, 'skhynix', '3️⃣ SK하이닉스 (000660)', '#EA002C') # SK Hynix Signature Red
+    c1 = render_quant_section_chart(history, 'kospi', '코스피 (KOSPI)', '#10b981')
+    c2 = render_quant_section_chart(history, 'samsung', '삼성전자 (005930)', '#2563eb')
+    c3 = render_quant_section_chart(history, 'skhynix', 'SK하이닉스 (000660)', '#EA002C')
     return c1 + c2 + c3
 
 def render_html(data, session, now_kst):
@@ -383,7 +378,7 @@ def render_html(data, session, now_kst):
           </tr>"""
 
     session_class = "morning" if session == 'morning' else "evening"
-    session_badge = "☀️ 모닝 (07:30)" if session == 'morning' else "🌙 마감 (18:00)"
+    session_badge = "모닝 (07:30)" if session == 'morning' else "마감 (18:00)"
 
     html = tpl.replace('{{REPORT_TITLE}}', data.get('reportTitle', ''))
     html = html.replace('{{SESSION_CLASS}}', session_class)
