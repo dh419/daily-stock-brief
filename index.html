@@ -191,8 +191,8 @@
     </div>
     <div class="filter-tabs">
       <button class="filter-btn active" onclick="filterReports('all', this)">전체</button>
-      <button class="filter-btn" onclick="filterReports('morning', this)">☀️ 모닝 (07:30)</button>
-      <button class="filter-btn" onclick="filterReports('evening', this)">🌙 마감 (18:00)</button>
+      <button class="filter-btn" onclick="filterReports('morning', this)">모닝 (07:00)</button>
+      <button class="filter-btn" onclick="filterReports('evening', this)">마감 (19:00)</button>
     </div>
     <div class="report-list" id="reportList"></div>
   </aside>
@@ -237,6 +237,17 @@
       }
     }
 
+    function formatDateWithWeekday(dateStr) {
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      const d = new Date(dateStr + 'T00:00:00');
+      if (isNaN(d)) return dateStr;
+      return `${dateStr} (${days[d.getDay()]})`;
+    }
+
+    function stripLeadingDate(title) {
+      return title.replace(/^\d{2,4}[.\-]\d{1,2}(?:[.\-]\d{1,2})?(?:\([일월화수목금토]\))?\s*/, '').trim() || title;
+    }
+
     function renderSidebar() {
       const container = document.getElementById('reportList');
       container.innerHTML = '';
@@ -249,14 +260,16 @@
           selectReport(item.id, item.path, item.title);
           if (window.innerWidth <= 768) toggleSidebar();
         };
+        const dateLabel = formatDateWithWeekday(item.date);
+        const cleanTitle = stripLeadingDate(item.title);
         el.innerHTML = `
           <div class="item-top">
-            <span class="item-date">${item.date}</span>
+            <span class="item-date">${dateLabel}</span>
             <span class="item-session ${item.session === 'morning' ? 'session-morning' : 'session-evening'}">
-              ${item.session === 'morning' ? '☀️ 모닝' : '🌙 마감'}
+              ${item.session === 'morning' ? '모닝' : '마감'}
             </span>
           </div>
-          <div class="item-title">${item.title}</div>
+          <div class="item-title">${cleanTitle}</div>
         `;
         container.appendChild(el);
       });
