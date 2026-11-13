@@ -314,19 +314,18 @@ def render_html(data, session, now_kst):
             d_path = f"M {x1_o:.1f} {y1_o:.1f} A {r_out} {r_out} 0 {large_arc} 1 {x2_o:.1f} {y2_o:.1f} L {x1_i:.1f} {y1_i:.1f} A {r_in} {r_in} 0 {large_arc} 0 {x2_i:.1f} {y2_i:.1f} Z"
             ind_slices.append(f'<path d="{d_path}" fill="{seg_col}" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="focusIndicator(\'ind-{idx}\')" />')
             
-            # Label inside slice
+            # Percent inside slice (no #number)
             mid_rad = math.radians(start_deg + sweep / 2.0)
             lx = cx + ((r_out + r_in) / 2.0) * math.cos(mid_rad)
             ly = cy + ((r_out + r_in) / 2.0) * math.sin(mid_rad)
-            ind_slices.append(f'<text x="{lx:.1f}" y="{ly + 3:.1f}" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">#{idx}</text>')
+            ind_slices.append(f'<text x="{lx:.1f}" y="{ly + 3:.1f}" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">{w_val}%</text>')
             start_deg = end_deg
 
-            short_kw = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name'])[:8]
+            short_kw = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name'])[:10]
             ind_legends.append(f'''
               <div onclick="focusIndicator('ind-{idx}')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
-                <div style="display:flex; align-items:center; gap:5px; overflow:hidden;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
                   <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:{seg_col}; flex-shrink:0;"></span>
-                  <span style="color:#94a3b8; font-weight:700;">#{idx}</span>
                   <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{short_kw}</span>
                 </div>
                 <span style="color:#fff; font-weight:800; flex-shrink:0;">{w_val}%</span>
@@ -368,7 +367,6 @@ def render_html(data, session, now_kst):
           <div id="ind-{idx}" style="{card_style} border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
               <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
-                <span style="font-size:0.74rem; font-weight:800; color:#e2e8f0; background:#334155; padding:2px 6px; border-radius:4px; flex-shrink:0;">#{idx}</span>
                 <span class="weight-pill" style="flex-shrink:0;">{ind['weight']}</span>
                 <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; {title_extra}">{name_str}</span>
               </div>
