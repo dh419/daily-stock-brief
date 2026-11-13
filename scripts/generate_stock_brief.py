@@ -195,10 +195,10 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         bars_html.append('</g>')
 
     return f"""
-      <div style="margin-bottom:14px; background:#0f172a; border:1px solid {color_accent}40; border-radius:12px; padding:10px 14px;">
+      <div style="margin-bottom:14px; background:{color_accent}22; border:1px solid {color_accent}; border-radius:12px; padding:10px 14px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <span style="font-size:0.9rem; font-weight:800; color:{color_accent};">{title}</span>
-          <span class="chart-tip-bar" style="font-size:0.74rem; color:#94a3b8; font-weight:600;"></span>
+          <span style="font-size:0.9rem; font-weight:800; color:#ffffff;">{title}</span>
+          <span class="chart-tip-bar" style="font-size:0.74rem; color:#e2e8f0; font-weight:600;"></span>
         </div>
         <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
           {''.join(grid_html)}
@@ -335,13 +335,13 @@ def render_html(data, session, now_kst):
                 break
 
         stocks_html += f"""
-      <div class="stock-card" style="background: linear-gradient(135deg, {brand_col}2E 0%, #111827 100%); border: 1px solid {brand_col}80;" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
+      <div class="stock-card" style="background: {brand_col}38; border: 1px solid {brand_col};" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
         <div class="stock-header">
-          <span class="stock-name">{s['name']}</span>
+          <span class="stock-name" style="color:#ffffff;">{s['name']}</span>
           <span class="stock-chg {chg_cls}">{s['change']}</span>
         </div>
-        <div class="stock-sub">{s['price']}</div>
-        <div class="stock-snippet">{s['summary']}</div>
+        <div class="stock-sub" style="color:#cbd5e1;">{s['price']}</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">{s['summary']}</div>
       </div>"""
 
     # Audit History
