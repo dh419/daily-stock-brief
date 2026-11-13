@@ -18,9 +18,7 @@
       --down: #3b82f6;    /* 한국 증시 하락: 파란색 */
       --down-soft: rgba(59, 130, 246, 0.15);
       --neutral: #10b981; /* 적중/안정: 에메랄드 */
-      --neutral-soft: rgba(16, 185, 129, 0.15);
       --amber: #f59e0b;
-      --amber-soft: rgba(245, 158, 11, 0.15);
       --accent: #6366f1;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,15 +57,13 @@
       font-weight: 700;
       padding: 4px 12px;
       border-radius: 9999px;
-      background: var(--card-border);
-      color: #e2e8f0;
       border: 1px solid #334155;
     }
     .badge-session.morning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
     .badge-session.evening { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border-color: rgba(99, 102, 241, 0.3); }
     .header-time { font-size: 0.82rem; color: var(--text-dim); }
-    h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; color: #fff; }
-    .header-summary { font-size: 0.93rem; color: #cbd5e1; line-height: 1.6; }
+    h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; color: #fff; }
+    .header-summary { font-size: 0.92rem; color: #cbd5e1; line-height: 1.6; }
 
     /* Key Macro Bar */
     .macro-strip {
@@ -89,18 +85,19 @@
     .chg-down { color: var(--down); }
     .chg-neutral { color: var(--text-muted); }
 
-    /* 3 Main Targets Band Visualizer */
+    /* Section Titles */
     .section-title {
-      font-size: 1.15rem;
+      font-size: 1.12rem;
       font-weight: 800;
       margin: 24px 0 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
       color: #fff;
     }
-    .section-title span { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+    .section-title span.sub { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); }
     
+    /* 3 Main Targets Band Visualizer with Explicit 0% Axis */
     .target-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
@@ -119,43 +116,98 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
-    .target-name { font-size: 1.1rem; font-weight: 800; }
+    .target-name { font-size: 1.05rem; font-weight: 800; }
     .target-code { font-size: 0.78rem; color: var(--text-dim); margin-left: 4px; font-weight: normal; }
-    .target-gap { font-size: 0.8rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
-    
-    /* Range Visualizer */
-    .band-meter {
-      margin: 12px 0 8px;
-      background: #1f2937;
-      border-radius: 8px;
-      height: 24px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      padding: 0 8px;
-      overflow: hidden;
+    .target-gap { font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+
+    /* Dedicated Band Meter with Center 0% Reference Axis */
+    .band-meter-wrap {
+      margin: 10px 0 6px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 8px 10px 6px;
     }
-    .band-fill {
-      position: absolute;
-      left: 15%;
-      width: 70%;
-      height: 100%;
-      background: rgba(99, 102, 241, 0.25);
-      border-left: 2px solid #818cf8;
-      border-right: 2px solid #818cf8;
-    }
-    .band-labels {
+    .meter-scale-header {
       display: flex;
       justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      font-family: monospace;
+      margin-bottom: 4px;
+    }
+    .meter-track {
+      height: 28px;
+      background: #1e293b;
+      border-radius: 6px;
+      position: relative;
+      overflow: visible;
+      display: flex;
+      align-items: center;
+    }
+    /* Fixed 0% Axis Line */
+    .axis-zero {
+      position: absolute;
+      left: 50%;
+      top: -3px;
+      bottom: -3px;
+      width: 2px;
+      background: #e2e8f0;
+      z-index: 10;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+    }
+    .axis-zero-label {
+      position: absolute;
+      left: 50%;
+      top: -16px;
+      transform: translateX(-50%);
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #f8fafc;
+      background: #334155;
+      padding: 1px 4px;
+      border-radius: 3px;
+      z-index: 11;
+    }
+    /* Forecast Range Band */
+    .meter-band {
+      position: absolute;
+      height: 100%;
+      background: rgba(99, 102, 241, 0.35);
+      border-left: 2px solid #818cf8;
+      border-right: 2px solid #818cf8;
+      border-radius: 2px;
+      z-index: 5;
+    }
+    /* Actual Pin Indicator */
+    .meter-actual-pin {
+      position: absolute;
+      top: -6px;
+      bottom: -6px;
+      width: 4px;
+      border-radius: 2px;
+      z-index: 15;
+    }
+    .meter-actual-pin.hit {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+    .meter-actual-pin.miss {
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+    }
+    .meter-legend {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
       font-size: 0.75rem;
-      color: var(--text-muted);
       font-weight: 600;
-      margin-top: 4px;
     }
     .target-desc {
-      font-size: 0.84rem;
+      font-size: 0.83rem;
       color: #94a3b8;
       margin-top: 8px;
       line-height: 1.45;
@@ -172,35 +224,35 @@
     table.data-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       text-align: left;
     }
     table.data-table th {
       background: #1e293b;
-      padding: 12px 14px;
+      padding: 10px 14px;
       font-weight: 700;
       color: #cbd5e1;
       border-bottom: 1px solid var(--card-border);
       white-space: nowrap;
     }
     table.data-table td {
-      padding: 12px 14px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--card-border);
       vertical-align: middle;
     }
     table.data-table tr:last-child td { border-bottom: none; }
     .weight-pill {
       display: inline-block;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 6px;
+      padding: 2px 7px;
+      border-radius: 5px;
       background: rgba(99, 102, 241, 0.2);
       color: #a5b4fc;
     }
     .sig-badge {
       display: inline-block;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 700;
       padding: 3px 8px;
       border-radius: 6px;
@@ -245,22 +297,56 @@
       line-height: 1.4;
     }
 
-    /* Cumulative Binary Audit Table */
-    .audit-summary {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 10px;
-      font-size: 0.88rem;
-      color: #cbd5e1;
-      background: #1e293b;
-      padding: 10px 16px;
-      border-radius: 10px;
+    /* Cumulative Binary Chart Container */
+    .chart-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
     }
-    .audit-stat { font-weight: 800; color: #fff; }
-    .eval-circle { font-size: 1.05rem; }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chart-kpi {
+      display: flex;
+      gap: 16px;
+      align-items: baseline;
+    }
+    .kpi-num { font-size: 1.4rem; font-weight: 800; color: #fbbf24; }
+    .kpi-sub { font-size: 0.82rem; color: var(--text-muted); }
+    .btn-rawdata {
+      background: #1e293b;
+      border: 1px solid #3b82f6;
+      color: #93c5fd;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-rawdata:hover {
+      background: #2563eb;
+      color: #fff;
+    }
 
-    /* Modal for Stock Detail */
+    /* SVG Timeline Chart */
+    .timeline-svg {
+      width: 100%;
+      height: 130px;
+      display: block;
+    }
+
+    /* Modals */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -277,7 +363,7 @@
       background: #111827;
       border: 1px solid #374151;
       border-radius: 16px;
-      max-width: 500px;
+      max-width: 600px;
       width: 100%;
       padding: 20px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
@@ -366,10 +452,9 @@
       </div>
     </div>
 
-    <!-- 3 Core Forecast Targets -->
+    <!-- 3 Core Forecast Targets (with 0% Axis) -->
     <div class="section-title">
-      🎯 핵심 3대 축 당일 예상 등락 밴드 및 시초가 갭
-      <span>(이진 평가 ⭕/❌ 판정 대상)</span>
+      <div>🎯 핵심 3대 축 예상 밴드 vs 실제 결과 <span class="sub">(중앙 0% 기준선 시각화)</span></div>
     </div>
     <div class="target-grid">
       
@@ -378,12 +463,25 @@
           <div class="target-name">코스피<span class="target-code">KOSPI</span></div>
           <span class="target-gap" style="background:rgba(99,102,241,0.18); color:#a5b4fc;">시초가 -0.4% ~ -1.0%</span>
         </div>
-        <div class="band-meter">
-          <div class="band-fill"></div>
+        
+      <div class="band-meter-wrap">
+        <div class="meter-scale-header">
+          <span>-5.0% (하방)</span>
+          <span style="color:#e2e8f0; font-weight:800;">0.0% (기준)</span>
+          <span>+5.0% (상방)</span>
         </div>
-        <div class="band-labels">
-          <span>예상 밴드: <strong style="color:#fff;">-0.8% ~ +0.6% (5,300 ~ 5,375선)</strong></span>
+        <div class="meter-track">
+          <div class="axis-zero"></div>
+          <div class="axis-zero-label">0%</div>
+          <div class="meter-band" style="left:42.0%; width:14.0%;"></div>
+          
         </div>
+        <div class="meter-legend">
+          <span style="color:#a5b4fc;">예상 밴드: -0.8% ~ +0.6% (5,300 ~ 5,375선)</span>
+          <span style="color:#94a3b8;">장중 진행 대기</span>
+        </div>
+      </div>
+    
         <div class="target-desc">5,289 ~ 5,321선 약보합 출발 후 5,300선 지지력 테스트 및 반등 시도 예상</div>
       </div>
       <div class="target-card">
@@ -391,12 +489,25 @@
           <div class="target-name">삼성전자<span class="target-code">005930</span></div>
           <span class="target-gap" style="background:rgba(99,102,241,0.18); color:#a5b4fc;">시초가 -0.5% ~ -1.2%</span>
         </div>
-        <div class="band-meter">
-          <div class="band-fill"></div>
+        
+      <div class="band-meter-wrap">
+        <div class="meter-scale-header">
+          <span>-5.0% (하방)</span>
+          <span style="color:#e2e8f0; font-weight:800;">0.0% (기준)</span>
+          <span>+5.0% (상방)</span>
         </div>
-        <div class="band-labels">
-          <span>예상 밴드: <strong style="color:#fff;">-0.8% ~ +1.5% (206,000 ~ 211,000원)</strong></span>
+        <div class="meter-track">
+          <div class="axis-zero"></div>
+          <div class="axis-zero-label">0%</div>
+          <div class="meter-band" style="left:42.0%; width:23.0%;"></div>
+          
         </div>
+        <div class="meter-legend">
+          <span style="color:#a5b4fc;">예상 밴드: -0.8% ~ +1.5% (206,000 ~ 211,000원)</span>
+          <span style="color:#94a3b8;">장중 진행 대기</span>
+        </div>
+      </div>
+    
         <div class="target-desc">205,500 ~ 207,000원 출발, '20만 전자' 견고한 방어 및 브로드컴·AMD 협력 부각</div>
       </div>
       <div class="target-card">
@@ -404,20 +515,32 @@
           <div class="target-name">SK하이닉스<span class="target-code">000660</span></div>
           <span class="target-gap" style="background:rgba(99,102,241,0.18); color:#a5b4fc;">시초가 -1.5% ~ -3.0%</span>
         </div>
-        <div class="band-meter">
-          <div class="band-fill"></div>
+        
+      <div class="band-meter-wrap">
+        <div class="meter-scale-header">
+          <span>-5.0% (하방)</span>
+          <span style="color:#e2e8f0; font-weight:800;">0.0% (기준)</span>
+          <span>+5.0% (상방)</span>
         </div>
-        <div class="band-labels">
-          <span>예상 밴드: <strong style="color:#fff;">-2.5% ~ +1.0% (1,230,000 ~ 1,275,000원)</strong></span>
+        <div class="meter-track">
+          <div class="axis-zero"></div>
+          <div class="axis-zero-label">0%</div>
+          <div class="meter-band" style="left:25.0%; width:35.0%;"></div>
+          
         </div>
+        <div class="meter-legend">
+          <span style="color:#a5b4fc;">예상 밴드: -2.5% ~ +1.0% (1,230,000 ~ 1,275,000원)</span>
+          <span style="color:#94a3b8;">장중 진행 대기</span>
+        </div>
+      </div>
+    
         <div class="target-desc">엔비디아 사임 노이즈 소화 과정 후 빅테크 HBM 수주 기반 125만 원 지지력 검증</div>
       </div>
     </div>
 
     <!-- 6 Active Indicators Matrix -->
     <div class="section-title">
-      ⚖️ 6대 다이나믹 액티브 베이스 지표 (가중치 100%)
-      <span>(오후 마감 감사 시 설명력 저하 피처 퇴출 & 교체)</span>
+      <div>⚖️ 6대 다이나믹 액티브 베이스 지표 감사 <span class="sub">(설명력 부재 피처 퇴출 &amp; 신규 편입)</span></div>
     </div>
     <div class="indicators-table-wrap">
       <table class="data-table">
@@ -473,8 +596,7 @@
 
     <!-- 13 Core Stocks Grid -->
     <div class="section-title">
-      📊 국내외 13개 핵심 관심 종목 전수 동향
-      <span>(카드를 누르면 상세 분석 및 출처 확인)</span>
+      <div>📊 국내외 13개 핵심 관심 종목 전수 동향 <span class="sub">(카드 터치 시 상세 해설/출처 팝업)</span></div>
     </div>
     <div class="stocks-grid" id="stocksGrid">
       
@@ -584,29 +706,232 @@
       </div>
     </div>
 
-    <!-- Cumulative Binary Evaluation Table -->
+    <!-- Cumulative Binary Evaluation Chart (Replaces Plain Table) -->
     <div class="section-title">
-      📈 최근 1개월 누적 예측 vs 실제 결과 비교표 (엄격한 이진 평가)
-      <span>(부분적중 제외, 3개 대상 전원 밴드 안착 시에만 ⭕)</span>
+      <div>📈 최근 1개월 누적 적중 추이 <span class="sub">(3개 전원 안착 ⭕ / 1개라도 이탈 ❌)</span></div>
+      <button class="btn-rawdata" onclick="openRawDataModal()">📋 로데이터(Raw Data) 보기</button>
     </div>
-    <div class="audit-summary">
-      <div>누적 성적: <span class="audit-stat">24회 중 적중(⭕) 8회 / 실패(❌) 16회</span></div>
-      <div>적중률: <span class="audit-stat" style="color:#fbbf24;">33.3%</span></div>
+    <div class="chart-box">
+      <div class="chart-header">
+        <div class="chart-kpi">
+          <div><span class="kpi-num">32.0%</span> <span class="kpi-sub">누적 적중률</span></div>
+          <div style="font-size:0.9rem; color:#cbd5e1;">총 25회 중 <strong style="color:#10b981;">적중(⭕) 8회</strong> / <strong style="color:#ef4444;">실패(❌) 17회</strong></div>
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-dim);">최근 25거래일 일별 적중 타임라인</div>
+      </div>
+      
+      <svg class="timeline-svg" viewBox="0 0 900 100" preserveAspectRatio="xMidYMid meet">
+        <line x1="30" y1="45" x2="870" y2="45" stroke="#334155" stroke-width="2" stroke-dasharray="4 4" /><line x1="30.0" y1="45" x2="30.0" y2="29.0" stroke="#10b981" stroke-width="2" opacity="0.6" /><line x1="65.0" y1="45" x2="65.0" y2="29.0" stroke="#10b981" stroke-width="2" opacity="0.6" /><line x1="100.0" y1="45" x2="100.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="135.0" y1="45" x2="135.0" y2="29.0" stroke="#10b981" stroke-width="2" opacity="0.6" /><line x1="170.0" y1="45" x2="170.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="205.0" y1="45" x2="205.0" y2="29.0" stroke="#10b981" stroke-width="2" opacity="0.6" /><line x1="240.0" y1="45" x2="240.0" y2="29.0" stroke="#10b981" stroke-width="2" opacity="0.6" /><line x1="275.0" y1="45" x2="275.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="310.0" y1="45" x2="310.0" y2="29.0" stroke="#10b981" stroke-width="2" opacity="0.6" /><line x1="345.0" y1="45" x2="345.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="380.0" y1="45" x2="380.0" y2="29.0" stroke="#10b981" stroke-width="2" opacity="0.6" /><line x1="415.0" y1="45" x2="415.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="450.0" y1="45" x2="450.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="485.0" y1="45" x2="485.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="520.0" y1="45" x2="520.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="555.0" y1="45" x2="555.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="590.0" y1="45" x2="590.0" y2="29.0" stroke="#10b981" stroke-width="2" opacity="0.6" /><line x1="625.0" y1="45" x2="625.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="660.0" y1="45" x2="660.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="695.0" y1="45" x2="695.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="730.0" y1="45" x2="730.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="765.0" y1="45" x2="765.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="800.0" y1="45" x2="800.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="835.0" y1="45" x2="835.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" /><line x1="870.0" y1="45" x2="870.0" y2="61.0" stroke="#ef4444" stroke-width="2" opacity="0.6" />
+        
+          <g transform="translate(30.0, 29.0)">
+            <circle r="12" fill="#111827" stroke="#10b981" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#10b981">⭕</text>
+            <text text-anchor="middle" dy="28" font-size="9" fill="#94a3b8" font-family="monospace">10.12</text>
+          </g>
+        
+          <g transform="translate(65.0, 29.0)">
+            <circle r="12" fill="#111827" stroke="#10b981" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#10b981">⭕</text>
+            <text text-anchor="middle" dy="28" font-size="9" fill="#94a3b8" font-family="monospace">10.13</text>
+          </g>
+        
+          <g transform="translate(100.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">10.14</text>
+          </g>
+        
+          <g transform="translate(135.0, 29.0)">
+            <circle r="12" fill="#111827" stroke="#10b981" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#10b981">⭕</text>
+            <text text-anchor="middle" dy="28" font-size="9" fill="#94a3b8" font-family="monospace">10.15</text>
+          </g>
+        
+          <g transform="translate(170.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">10.16</text>
+          </g>
+        
+          <g transform="translate(205.0, 29.0)">
+            <circle r="12" fill="#111827" stroke="#10b981" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#10b981">⭕</text>
+            <text text-anchor="middle" dy="28" font-size="9" fill="#94a3b8" font-family="monospace">10.19</text>
+          </g>
+        
+          <g transform="translate(240.0, 29.0)">
+            <circle r="12" fill="#111827" stroke="#10b981" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#10b981">⭕</text>
+            <text text-anchor="middle" dy="28" font-size="9" fill="#94a3b8" font-family="monospace">10.20</text>
+          </g>
+        
+          <g transform="translate(275.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">10.21</text>
+          </g>
+        
+          <g transform="translate(310.0, 29.0)">
+            <circle r="12" fill="#111827" stroke="#10b981" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#10b981">⭕</text>
+            <text text-anchor="middle" dy="28" font-size="9" fill="#94a3b8" font-family="monospace">10.22</text>
+          </g>
+        
+          <g transform="translate(345.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">10.23</text>
+          </g>
+        
+          <g transform="translate(380.0, 29.0)">
+            <circle r="12" fill="#111827" stroke="#10b981" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#10b981">⭕</text>
+            <text text-anchor="middle" dy="28" font-size="9" fill="#94a3b8" font-family="monospace">10.26</text>
+          </g>
+        
+          <g transform="translate(415.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">10.27</text>
+          </g>
+        
+          <g transform="translate(450.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">10.28</text>
+          </g>
+        
+          <g transform="translate(485.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">10.29</text>
+          </g>
+        
+          <g transform="translate(520.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">10.30</text>
+          </g>
+        
+          <g transform="translate(555.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.02</text>
+          </g>
+        
+          <g transform="translate(590.0, 29.0)">
+            <circle r="12" fill="#111827" stroke="#10b981" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#10b981">⭕</text>
+            <text text-anchor="middle" dy="28" font-size="9" fill="#94a3b8" font-family="monospace">11.03</text>
+          </g>
+        
+          <g transform="translate(625.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.04</text>
+          </g>
+        
+          <g transform="translate(660.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.05</text>
+          </g>
+        
+          <g transform="translate(695.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.06</text>
+          </g>
+        
+          <g transform="translate(730.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.09</text>
+          </g>
+        
+          <g transform="translate(765.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.10</text>
+          </g>
+        
+          <g transform="translate(800.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.11</text>
+          </g>
+        
+          <g transform="translate(835.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.12</text>
+          </g>
+        
+          <g transform="translate(870.0, 61.0)">
+            <circle r="12" fill="#111827" stroke="#ef4444" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="#ef4444">❌</text>
+            <text text-anchor="middle" dy="-20" font-size="9" fill="#94a3b8" font-family="monospace">11.13</text>
+          </g>
+        
+      </svg>
+    
     </div>
-    <div class="indicators-table-wrap">
-      <table class="data-table">
-        <thead>
+
+    <footer>
+      🤖 Powered by Gemini 4 Hydrogen · Automated by GitHub Actions &amp; GitHub Pages<br>
+      본 리포트는 정량적 통계 및 선행 지표 가중치 모델에 기반한 시장 예측 분석으로, 투자 권유가 아니며 모든 투자의 책임은 본인에게 있습니다.
+    </footer>
+  </div>
+
+  <!-- Detail Modal for Stocks -->
+  <div class="modal-backdrop" id="stockModal" onclick="closeStockModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalStockName" style="font-size:1.15rem; color:#fff;"></h3>
+          <div id="modalStockPrice" style="font-size:0.92rem; font-weight:700; margin-top:2px;"></div>
+        </div>
+        <button class="close-btn" onclick="closeStockModal()">✕</button>
+      </div>
+      <div id="modalStockDesc" style="font-size:0.86rem; color:#cbd5e1; line-height:1.6; margin-top:8px;"></div>
+      <div style="margin-top:14px;">
+        <a id="modalStockLink" class="modal-link" target="_blank" rel="noopener">📰 원문 기사 / 데이터 출처 보기</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raw Data Modal for Audit History -->
+  <div class="modal-backdrop" id="rawDataModal" onclick="closeRawDataModal()">
+    <div class="modal" style="max-width:760px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-size:1.15rem; color:#fff;">📋 최근 1개월 누적 예측 vs 실제 로데이터</h3>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">엄격한 이진 판정(⭕/❌) 상세 로그</div>
+        </div>
+        <button class="close-btn" onclick="closeRawDataModal()">✕</button>
+      </div>
+      <div class="indicators-table-wrap" style="max-height:60vh; margin-bottom:0;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>일자</th>
+              <th>코스피 (예측/실제)</th>
+              <th>삼성전자 (예측/실제)</th>
+              <th>SK하이닉스 (예측/실제)</th>
+              <th style="text-align:center;">판정</th>
+              <th>핵심 결과 및 오차 사유</th>
+            </tr>
+          </thead>
+          <tbody>
+            
           <tr>
-            <th>일자</th>
-            <th>코스피 (예측/실제)</th>
-            <th>삼성전자 (예측/실제)</th>
-            <th>SK하이닉스 (예측/실제)</th>
-            <th style="text-align:center;">판정</th>
-            <th>핵심 결과 및 오차 사유</th>
+            <td style="font-weight:700; white-space:nowrap;">11.13 (금)</td>
+            <td>-0.8%~+0.6% / -0.98%</td>
+            <td>-0.8%~+1.5% / -0.96%</td>
+            <td>-2.5%~+1.0% / -3%대</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">장중 5,500선 돌파 후 외인 5,505억 순매도 전환(하이닉스 4,714억 매도) 및 엔비디아 딥시크 의혹으로 하단 이탈</td>
           </tr>
-        </thead>
-        <tbody>
-          
           <tr>
             <td style="font-weight:700; white-space:nowrap;">11.12 (목)</td>
             <td>+1.2%~+2.8% / -0.61%</td>
@@ -799,29 +1124,8 @@
             <td style="text-align:center;" class="eval-circle">⭕</td>
             <td style="color:#94a3b8; font-size:0.82rem;">주말 미 증시 반등 훈풍 및 반도체 투톱 동반 상승 적중</td>
           </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <footer>
-      🤖 Powered by Gemini 4 Hydrogen · Automated by GitHub Actions &amp; GitHub Pages<br>
-      본 리포트는 정량적 통계 및 선행 지표 가중치 모델에 기반한 시장 예측 분석으로, 투자 권유가 아니며 모든 투자의 책임은 본인에게 있습니다.
-    </footer>
-  </div>
-
-  <!-- Detail Modal -->
-  <div class="modal-backdrop" id="stockModal" onclick="closeModal()">
-    <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <div>
-          <h3 id="modalStockName" style="font-size:1.2rem; color:#fff;"></h3>
-          <div id="modalStockPrice" style="font-size:0.95rem; font-weight:700; margin-top:2px;"></div>
-        </div>
-        <button class="close-btn" onclick="closeModal()">✕</button>
-      </div>
-      <div id="modalStockDesc" style="font-size:0.88rem; color:#cbd5e1; line-height:1.6; margin-top:10px;"></div>
-      <div style="margin-top:16px;">
-        <a id="modalStockLink" class="modal-link" target="_blank" rel="noopener">📰 원문 기사 / 데이터 출처 보기</a>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -840,8 +1144,14 @@
       }
       document.getElementById('stockModal').classList.add('open');
     }
-    function closeModal() {
+    function closeStockModal() {
       document.getElementById('stockModal').classList.remove('open');
+    }
+    function openRawDataModal() {
+      document.getElementById('rawDataModal').classList.add('open');
+    }
+    function closeRawDataModal() {
+      document.getElementById('rawDataModal').classList.remove('open');
     }
   </script>
 </body>

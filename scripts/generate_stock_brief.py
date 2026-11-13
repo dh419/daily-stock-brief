@@ -4,6 +4,7 @@ import json
 import time
 import argparse
 from datetime import datetime, timezone, timedelta
+
 try:
     from google import genai
     from google.genai import types
@@ -23,89 +24,125 @@ THINKING_BUDGET = int(os.environ.get('THINKING_BUDGET', '2048'))
 
 KST = timezone(timedelta(hours=9))
 
-def get_session_prompt(session, now_kst):
-    date_str = now_kst.strftime('%Y-%m-%d')
-    weekday_ko = ['월', '화', '수', '목', '금', '토', '일'][now_kst.weekday()]
+def parse_percent(val_str):
+    if not val_str:
+        return None
+    m = re.search(r'([+-]?\d+(?:\.\d+)?)%', str(val_str))
+    if m:
+        return float(m.group(1))
+    return None
+
+def parse_range(range_str):
+    if not range_str:
+        return None, None
+    matches = re.findall(r'([+-]?\d+(?:\.\d+)?)%', str(range_str))
+    if len(matches) >= 2:
+        return float(matches[0]), float(matches[1])
+    elif len(matches) == 1:
+        v = float(matches[0])
+        return v, v
+    return None, None
+
+def render_band_meter(t, session):
+    # Scale: -5.0% to +5.0% (center 0% at 50%)
+    # clamp helper
+    def to_percent_pos(val, min_v=-5.0, max_v=5.0):
+        if val is None:
+            return None
+        clamped = max(min_v, min(max_v, val))
+        return ((clamped - min_v) / (max_v - min_v)) * 100.0
+
+    low_v, high_v = parse_range(t.get('band', ''))
+    if low_v is None:
+        low_v, high_v = parse_range(t.get('gap', ''))
+
+    actual_v = parse_percent(t.get('band', '')) if session == 'evening' else None
     
-    # Load recent audit history if exists
-    audit_context = ""
-    if os.path.exists(AUDIT_HISTORY_PATH):
-        with open(AUDIT_HISTORY_PATH, 'r', encoding='utf-8') as f:
-            history = json.load(f)
-            audit_context = f"\n[최근 누적 예측 vs 실제 이진 판정 기록 (최근 {len(history)}일)]\n" + json.dumps(history[-25:], ensure_ascii=False)
+    # Calculate positions
+    band_html = ""
+    if low_v is not None and high_v is not None:
+        p_low = to_percent_pos(min(low_v, high_v))
+        p_high = to_percent_pos(max(low_v, high_v))
+        width = max(2.0, p_high - p_low)
+        band_html = f'<div class="meter-band" style="left:{p_low:.1f}%; width:{width:.1f}%;"></div>'
 
-    if session == 'morning':
-        session_desc = f"오전 모닝 브리핑 (매일 07:30 KST) - {date_str} ({weekday_ko})"
-        task_focus = """
-1. 간밤 마감된 미국 정규장(다우, S&P 500, 나스닥, 필라델피아 반도체 SOX, EWY), 미 국채 10년물 금리, WTI 국제 유가, 역외 NDF 원/달러 환율, 코스피200 야간 선물의 실시간 최신 수치를 검색하세요.
-2. 글로벌 매크로, 미국 AI/반도체 펀더멘털, 국내 수급/이벤트, 외환 4개 축을 기준으로 **6대 다이나믹 액티브 베이스 지표**를 선정하고 가중치(총합 100%)와 방향성 시그널(상방/중립/하방)을 부여하세요.
-3. 당일 한국 증시(코스피, 코스닥) 및 핵심 대장주(삼성전자, SK하이닉스)의 **시초가 갭(%)**과 **장중 예상 등락률(%) 범위**를 산출하세요.
-4. 국내외 13개 핵심 관심 종목(삼성전자, SK하이닉스, SKHY, 엔비디아, 테슬라, 알파벳A, 메타, 아마존, 마이크론, 팔란티어, GE버노바, 블룸에너지, 웨스턴디지털)의 최신 등락률과 핵심 이슈를 전수 수집하세요.
-"""
-    else:
-        session_desc = f"오후 마감 분석 리포트 (매일 18:00 KST) - {date_str} ({weekday_ko})"
-        task_focus = """
-1. 당일 마감된 국내 증시(코스피, 코스닥 종가 및 등락률), 외국인/기관 순매수 금액, 서울 외환시장 원/달러 환율 종가, 삼성전자·SK하이닉스 마감 종가 및 등락률, 유럽 증시 및 미국 프리마켓 동향을 실시간 검색하세요.
-2. 오늘 오전 브리핑의 코스피·삼성전자·SK하이닉스 예측 밴드와 실제 종가를 대조하여 **엄격한 이진 판정(⭕ 적중 또는 ❌ 실패, 부분적중 없음)**을 내리고, 오차 유발 시 지표를 퇴출/신규 편입하는 피처 감사를 수행하세요.
-3. 다음 거래일 개장을 대비한 6대 액티브 베이스 지표 세트와 내일 장 전망을 제시하세요.
-4. 국내외 13개 핵심 관심 종목의 최신 마감/프리마켓 동향을 수집하세요.
-"""
+    actual_html = ""
+    is_hit = False
+    if actual_v is not None:
+        p_act = to_percent_pos(actual_v)
+        if low_v is not None and high_v is not None and (low_v <= actual_v <= high_v):
+            is_hit = True
+        pin_class = "hit" if is_hit else "miss"
+        actual_html = f'<div class="meter-actual-pin {pin_class}" style="left:{p_act:.1f}%;" title="실제 종가: {actual_v:+.2f}%"></div>'
 
-    prompt = f"""
-당신은 한국 및 미국 증시, 매크로 경제, AI/반도체 밸류체인을 전담하는 최고 수준의 정량 투자 애널리스트입니다.
-지금은 {session_desc} 시점입니다.
+    return f"""
+      <div class="band-meter-wrap">
+        <div class="meter-scale-header">
+          <span>-5.0% (하방)</span>
+          <span style="color:#e2e8f0; font-weight:800;">0.0% (기준)</span>
+          <span>+5.0% (상방)</span>
+        </div>
+        <div class="meter-track">
+          <div class="axis-zero"></div>
+          <div class="axis-zero-label">0%</div>
+          {band_html}
+          {actual_html}
+        </div>
+        <div class="meter-legend">
+          <span style="color:#a5b4fc;">예상 밴드: {t.get('band', '-')}</span>
+          {f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕ 적중" if is_hit else "❌ 이탈"})</span>' if actual_v is not None else '<span style="color:#94a3b8;">장중 진행 대기</span>'}
+        </div>
+      </div>
+    """
 
-실시간 구글 검색을 활용하여 최신 시장 데이터와 외신·국내 뉴스를 수집하고, 반드시 아래 JSON 스키마 규격으로만 응답하세요 (마크다운 코드블록 없이 순수 JSON만 출력):
+def render_timeline_svg(history):
+    # Render interactive/clean SVG timeline of binary results
+    if not history:
+        return '<div style="color:var(--text-dim); text-align:center; padding:20px;">누적 기록이 없습니다.</div>'
+    
+    # Show last 25 entries in chronological order (left to right)
+    items = history[-25:]
+    total = len(items)
+    
+    svg_w = 900
+    svg_h = 100
+    margin_x = 30
+    step_x = (svg_w - margin_x * 2) / max(1, total - 1) if total > 1 else 0
+    y_center = 45
 
-{task_focus}
-{audit_context}
+    nodes_html = []
+    lines_html = []
+    
+    # baseline
+    lines_html.append(f'<line x1="{margin_x}" y1="{y_center}" x2="{svg_w - margin_x}" y2="{y_center}" stroke="#334155" stroke-width="2" stroke-dasharray="4 4" />')
+    
+    for idx, h in enumerate(items):
+        cx = margin_x + idx * step_x
+        is_hit = h.get('result') == '⭕'
+        color = "#10b981" if is_hit else "#ef4444"
+        cy = y_center - 16 if is_hit else y_center + 16
+        
+        # Line to center
+        lines_html.append(f'<line x1="{cx:.1f}" y1="{y_center}" x2="{cx:.1f}" y2="{cy:.1f}" stroke="{color}" stroke-width="2" opacity="0.6" />')
+        
+        # Circle Node
+        symbol = "⭕" if is_hit else "❌"
+        date_short = h.get('date', '').split(' ')[0]
+        nodes_html.append(f"""
+          <g transform="translate({cx:.1f}, {cy:.1f})">
+            <circle r="12" fill="#111827" stroke="{color}" stroke-width="2.5" />
+            <text text-anchor="middle" dy="4" font-size="10" font-weight="bold" fill="{color}">{symbol}</text>
+            <text text-anchor="middle" dy="{28 if is_hit else -20}" font-size="9" fill="#94a3b8" font-family="monospace">{date_short}</text>
+          </g>
+        """)
 
-반드시 준수할 JSON 출력 스키마:
-{{
-  "reportTitle": "미국 및 한국 증시 {'모닝 브리핑' if session == 'morning' else '마감 분석 리포트'} ({now_kst.strftime('%Y년 %m월 %d일')} {weekday_ko}요일)",
-  "executiveSummary": "핵심 지수 마감/예측 요약 및 당일 핵심 관전 포인트 2~3줄 요약",
-  "macroCards": [
-    {{ "title": "다우존스 / S&P500 / 나스닥 / SOX / 美10년물 / 원·달러 등 6개", "value": "현재 수치", "change": "+0.54% 또는 -1.20%", "direction": "up 또는 down 또는 neutral" }}
-  ],
-  "targets": [
-    {{
-      "name": "코스피 / 삼성전자 / SK하이닉스 (반드시 이 3개 순서대로)",
-      "code": "KOSPI / 005930 / 000660",
-      "gap": "시초가 -0.4% ~ -1.0%",
-      "band": "-0.8% ~ +0.6%",
-      "desc": "예상 지수/주가 밴드 및 지지·저항 핵심 코멘트"
-    }}
-  ],
-  "indicators": [
-    {{
-      "name": "지표명 (6개)",
-      "detail": "최신 확정 수치 및 상태 요약 (원문 출처 URL 포함 가능)",
-      "weight": "20%",
-      "signalText": "상방 / 하방 / 중립 + 짧은 사유",
-      "signalDir": "up 또는 down 또는 neutral"
-    }}
-  ],
-  "stocks": [
-    {{
-      "name": "종목명 (예: 삼성전자 (005930))",
-      "price": "현재가/종가 (예: 208,000원)",
-      "change": "+0.97%",
-      "direction": "up 또는 down 또는 neutral",
-      "summary": "핵심 이슈 및 수급 코멘트 2~3줄",
-      "url": "관련 뉴스 또는 시세 출처 URL"
-    }}
-  ],
-  "todayAudit": {{
-    "date": "{now_kst.strftime('%m.%d')} ({weekday_ko})",
-    "kospi": "예측 / 실제",
-    "samsung": "예측 / 실제",
-    "skhynix": "예측 / 실제",
-    "result": "⭕ 또는 ❌ (오전이면 '대기')",
-    "reason": "결과 및 오차 사유"
-  }}
-}}
-"""
-    return prompt
+    svg_content = f"""
+      <svg class="timeline-svg" viewBox="0 0 {svg_w} {svg_h}" preserveAspectRatio="xMidYMid meet">
+        {''.join(lines_html)}
+        {''.join(nodes_html)}
+      </svg>
+    """
+    return svg_content
 
 def render_html(data, session, now_kst):
     with open(MASTER_HTML_PATH, 'r', encoding='utf-8') as f:
@@ -122,21 +159,17 @@ def render_html(data, session, now_kst):
         <div class="macro-chg {cls}">{m['change']}</div>
       </div>"""
 
-    # Target Cards
+    # Target Cards with explicit 0% Axis Meter
     target_html = ""
     for t in data.get('targets', []):
+        meter_html = render_band_meter(t, session)
         target_html += f"""
       <div class="target-card">
         <div class="target-header">
           <div class="target-name">{t['name']}<span class="target-code">{t['code']}</span></div>
           <span class="target-gap" style="background:rgba(99,102,241,0.18); color:#a5b4fc;">{t['gap']}</span>
         </div>
-        <div class="band-meter">
-          <div class="band-fill"></div>
-        </div>
-        <div class="band-labels">
-          <span>예상 밴드: <strong style="color:#fff;">{t['band']}</strong></span>
-        </div>
+        {meter_html}
         <div class="target-desc">{t['desc']}</div>
       </div>"""
 
@@ -170,7 +203,7 @@ def render_html(data, session, now_kst):
         <div class="stock-snippet">{s['summary']}</div>
       </div>"""
 
-    # Audit History Table
+    # Audit History
     history = []
     if os.path.exists(AUDIT_HISTORY_PATH):
         with open(AUDIT_HISTORY_PATH, 'r', encoding='utf-8') as f:
@@ -178,7 +211,6 @@ def render_html(data, session, now_kst):
 
     if session == 'evening' and data.get('todayAudit') and data['todayAudit'].get('result') in ('⭕', '❌'):
         today_entry = data['todayAudit']
-        # Replace if same date exists, else append
         history = [h for h in history if h['date'] != today_entry['date']]
         history.append(today_entry)
         history = history[-30:] # keep last 30
@@ -190,6 +222,9 @@ def render_html(data, session, now_kst):
     loss_cnt = total_cnt - win_cnt
     win_rate = f"{(win_cnt / total_cnt * 100):.1f}" if total_cnt > 0 else "0.0"
 
+    chart_svg = render_timeline_svg(history)
+
+    # Raw Data Table rows for popup modal
     audit_html = ""
     for h in reversed(history):
         audit_html += f"""
@@ -218,74 +253,7 @@ def render_html(data, session, now_kst):
     html = html.replace('{{AUDIT_WIN_COUNT}}', str(win_cnt))
     html = html.replace('{{AUDIT_LOSS_COUNT}}', str(loss_cnt))
     html = html.replace('{{AUDIT_WIN_RATE}}', win_rate)
+    html = html.replace('{{AUDIT_CHART_SVG}}', chart_svg)
     html = html.replace('{{AUDIT_ROWS_HTML}}', audit_html)
 
     return html
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--session', choices=['morning', 'evening'], default='morning')
-    args = parser.parse_args()
-
-    if not GEMINI_API_KEY:
-        raise ValueError("GEMINI_API_KEY environment variable is missing.")
-
-    now_kst = datetime.now(KST)
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    prompt = get_session_prompt(args.session, now_kst)
-
-    candidate_models = [
-        GEMINI_MODEL,
-        'gemini-4-hydrogen',
-        'gemini-3.8-flash',
-        'gemini-3.5-flash-lite',
-        'gemini-3.5-flash'
-    ]
-    seen = set()
-    models_to_try = [m for m in candidate_models if not (m in seen or seen.add(m))]
-
-    response = None
-    last_err = None
-    for model_name in models_to_try:
-        try:
-            print(f"Trying Gemini model '{model_name}'...")
-            config_args = {
-                'tools': [types.Tool(google_search=types.GoogleSearch())],
-                'temperature': 0.2,
-            }
-            if THINKING_BUDGET > 0:
-                config_args['thinking_config'] = types.ThinkingConfig(thinking_budget=THINKING_BUDGET)
-
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(**config_args),
-            )
-            print(f"Success with model: {model_name}")
-            break
-        except Exception as e:
-            print(f"Model '{model_name}' failed: {e}")
-            last_err = e
-            time.sleep(3)
-
-    if not response:
-        raise RuntimeError(f"All model attempts failed: {last_err}")
-
-    raw_text = response.text.strip()
-    raw_text = re.sub(r'^```(?:json)?\s*', '', raw_text)
-    raw_text = re.sub(r'\s*```$', '', raw_text)
-    data = json.loads(raw_text)
-
-    html = render_html(data, args.session, now_kst)
-    
-    month_dir = os.path.join(DOCS_DIR, now_kst.strftime('%Y-%m'))
-    os.makedirs(month_dir, exist_ok=True)
-    out_file = os.path.join(month_dir, f"{now_kst.strftime('%Y-%m-%d')}-{args.session}.html")
-    
-    with open(out_file, 'w', encoding='utf-8') as f:
-        f.write(html)
-
-    print(f"Successfully generated stock brief: {out_file}")
-
-if __name__ == '__main__':
-    main()
