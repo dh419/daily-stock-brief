@@ -283,8 +283,7 @@ def render_html(data, session, now_kst):
             seg_col = '#3b82f6' # Korea market down = Blue
         else:
             seg_col = '#64748b'
-        short_name = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name']).split()[0][:6]
-        ind_bar_segments.append(f'<div style="width:{w_val}%; background:{seg_col}; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap; padding:0 2px;" title="{ind["name"]} ({w_val}%)">{short_name} {w_val}%</div>')
+        ind_bar_segments.append(f'<div style="width:{w_val}%; background:{seg_col}; display:flex; align-items:center; justify-content:center; font-size:0.74rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="{ind["name"]} ({w_val}%)">{w_val}%</div>')
 
     ind_bar_html = f"""
     <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
@@ -299,17 +298,21 @@ def render_html(data, session, now_kst):
     </div>
     """ if ind_bar_segments else ""
 
-    # Indicators Rows
+    # Indicators Mobile-friendly Cards
     ind_html = ""
     for ind in data.get('indicators', []):
         sig_cls = "sig-up" if ind['signalDir'] == 'up' else ("sig-down" if ind['signalDir'] == 'down' else "sig-neutral")
         ind_html += f"""
-          <tr>
-            <td style="font-weight:700; color:#fff;">{ind['name']}</td>
-            <td style="color:#cbd5e1;">{ind['detail']}</td>
-            <td><span class="weight-pill">{ind['weight']}</span></td>
-            <td><span class="sig-badge {sig_cls}">{ind['signalText']}</span></td>
-          </tr>"""
+          <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span class="weight-pill" style="flex-shrink:0;">{ind['weight']}</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35;">{ind['name']}</span>
+              </div>
+              <span class="sig-badge {sig_cls}" style="flex-shrink:0;">{ind['signalText']}</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.83rem; line-height:1.45;">{ind['detail']}</div>
+          </div>"""
 
     # Stocks Cards with Brand Signature Colors
     BRAND_COLORS = {

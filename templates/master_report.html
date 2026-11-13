@@ -431,25 +431,13 @@
       {{TARGET_CARDS_HTML}}
     </div>
 
-    <!-- 6 Active Indicators Matrix -->
+    <!-- 6 Active Indicators Matrix (Mobile-friendly Card List) -->
     <div class="section-title">
       <div>6대 액티브 지표</div>
     </div>
     {{INDICATORS_BAR_HTML}}
-    <div class="indicators-table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>지표</th>
-            <th>핵심 수치</th>
-            <th>가중치</th>
-            <th>시그널</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{INDICATORS_ROWS_HTML}}
-        </tbody>
-      </table>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+      {{INDICATORS_ROWS_HTML}}
     </div>
 
     <!-- 13 Core Stocks Grid -->
