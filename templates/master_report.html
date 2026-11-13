@@ -187,8 +187,9 @@
       position: absolute;
       top: -6px;
       bottom: -6px;
-      width: 4px;
-      border-radius: 2px;
+      width: 6px;
+      border-radius: 3px;
+      border: 1.5px solid #ffffff;
       z-index: 15;
     }
     .meter-actual-pin.hit {
@@ -263,12 +264,22 @@
     .sig-down { background: var(--down-soft); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
     .sig-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
 
-    /* 13 Stock Grid */
+    /* 13 Stock Grid - 2-Column Compact on Mobile */
     .stocks-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 10px;
       margin-bottom: 16px;
+    }
+    @media (max-width: 600px) {
+      .stocks-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .stock-card { padding: 10px !important; }
+      .stock-name { font-size: 0.82rem !important; }
+      .stock-chg { font-size: 0.78rem !important; }
+      .stock-snippet { font-size: 0.74rem !important; -webkit-line-clamp: 2 !important; }
     }
     .stock-card {
       background: var(--card-bg);
@@ -544,8 +555,22 @@
       const container = el.closest('div');
       const tipBar = container.querySelector('.chart-tip-bar');
       if (tipBar) {
-        tipBar.textContent = '📌 ' + text;
+        tipBar.textContent = text;
         tipBar.style.color = '#fbbf24';
+      }
+      const svg = el.closest('svg');
+      if (svg) {
+        svg.querySelectorAll('.hl-col').forEach(r => r.setAttribute('fill', 'transparent'));
+        const hl = el.querySelector('.hl-col');
+        if (hl) hl.setAttribute('fill', 'rgba(251, 191, 36, 0.16)');
+      }
+    }
+    function focusIndicator(id) {
+      const target = document.getElementById(id);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.style.boxShadow = '0 0 0 2px #fbbf24';
+        setTimeout(() => { target.style.boxShadow = 'none'; }, 1400);
       }
     }
   </script>

@@ -182,8 +182,8 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         # Group with interactive click/hover
         bars_html.append(f'<g style="cursor:pointer;" onclick="showChartTip(this, \'{safe_tip}\')">')
         bars_html.append(f'<title>{tooltip_txt}</title>')
-        # Invisible hit area for easier touch on mobile
-        bars_html.append(f'<rect x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" />')
+        # Invisible hit area with highlight class for interactive touch
+        bars_html.append(f'<rect class="hl-col" x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" rx="2" />')
         
         # Draw Predicted Band Bar (compact width: 10px for 1 month)
         if p_low is not None and p_high is not None:
@@ -234,15 +234,22 @@ def render_html(data, session, now_kst):
     with open(MASTER_HTML_PATH, 'r', encoding='utf-8') as f:
         tpl = f.read()
 
-    # Macro Cards
+    # Macro Cards (with semantic color check for Rates/Oil/FX)
     macro_html = ""
     for m in data.get('macroCards', []):
-        cls = "chg-up" if m['direction'] == 'up' else ("chg-down" if m['direction'] == 'down' else "chg-neutral")
+        title_str = m['title']
+        is_macro_pressure = any(k in title_str for k in ['금리', '유가', '환율', 'WTI'])
+        if is_macro_pressure and m['direction'] == 'up':
+            cls = "chg-neutral"
+            extra_style = "color:#f59e0b;" # Amber warning for rate/oil/FX spike
+        else:
+            cls = "chg-up" if m['direction'] == 'up' else ("chg-down" if m['direction'] == 'down' else "chg-neutral")
+            extra_style = ""
         macro_html += f"""
       <div class="macro-card">
         <div class="macro-title">{m['title']}</div>
         <div class="macro-val">{m['value']}</div>
-        <div class="macro-chg {cls}">{m['change']}</div>
+        <div class="macro-chg {cls}" style="{extra_style}">{m['change']}</div>
       </div>"""
 
     # Target Cards with explicit 0% Axis Meter & Signature Colors
@@ -265,11 +272,11 @@ def render_html(data, session, now_kst):
         <div class="target-desc" style="color:#e2e8f0;">{t['desc']}</div>
       </div>"""
 
-    # Indicators Stacked Share Bar + Sentiment Meter
+    # Indicators Stacked Share Bar + Sentiment Meter (Linked by #index)
     ind_bar_segments = []
     up_weight = 0
     down_weight = 0
-    for ind in data.get('indicators', []):
+    for idx, ind in enumerate(data.get('indicators', []), start=1):
         w_match = re.search(r'(\d+)', str(ind.get('weight', '0')))
         w_val = int(w_match.group(1)) if w_match else 0
         if w_val <= 0:
@@ -277,13 +284,13 @@ def render_html(data, session, now_kst):
         s_dir = ind.get('signalDir', 'neutral')
         if s_dir == 'up':
             up_weight += w_val
-            seg_col = '#ef4444' # Korea market up = Red
+            seg_col = '#ef4444'
         elif s_dir == 'down':
             down_weight += w_val
-            seg_col = '#3b82f6' # Korea market down = Blue
+            seg_col = '#3b82f6'
         else:
             seg_col = '#64748b'
-        ind_bar_segments.append(f'<div style="width:{w_val}%; background:{seg_col}; display:flex; align-items:center; justify-content:center; font-size:0.74rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="{ind["name"]} ({w_val}%)">{w_val}%</div>')
+        ind_bar_segments.append(f'<div onclick="focusIndicator(\'ind-{idx}\')" style="cursor:pointer; width:{w_val}%; background:{seg_col}; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; border-right:1px solid #0b0f19; overflow:hidden; white-space:nowrap;" title="{ind["name"]} ({w_val}%)">#{idx} {w_val}%</div>')
 
     ind_bar_html = f"""
     <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
@@ -298,14 +305,12 @@ def render_html(data, session, now_kst):
     </div>
     """ if ind_bar_segments else ""
 
-    # Indicators Mobile-friendly Cards with Audit Status Color Coding
+    # Indicators Mobile-friendly Cards with Audit Status Color Coding & #index Link
     ind_html = ""
-    for ind in data.get('indicators', []):
+    for idx, ind in enumerate(data.get('indicators', []), start=1):
         sig_cls = "sig-up" if ind['signalDir'] == 'up' else ("sig-down" if ind['signalDir'] == 'down' else "sig-neutral")
         name_str = ind['name']
         
-        # Audit status styling: Non-directional colors (Purple=신규, Amber=유지, Dashed/Dimmed=퇴출)
-        # This preserves Red/Blue exclusively for Up/Down market direction!
         card_style = "background:var(--card-bg); border:1px solid var(--card-border);"
         title_extra = ""
         if '[신규]' in name_str:
@@ -317,9 +322,10 @@ def render_html(data, session, now_kst):
             title_extra = "text-decoration:line-through; color:#94a3b8;"
 
         ind_html += f"""
-          <div style="{card_style} border-radius:12px; padding:12px 14px;">
+          <div id="ind-{idx}" style="{card_style} border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
               <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span style="font-size:0.74rem; font-weight:800; color:#e2e8f0; background:#334155; padding:2px 6px; border-radius:4px; flex-shrink:0;">#{idx}</span>
                 <span class="weight-pill" style="flex-shrink:0;">{ind['weight']}</span>
                 <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; {title_extra}">{name_str}</span>
               </div>
