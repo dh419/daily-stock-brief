@@ -107,16 +107,16 @@ def render_band_meter(t, session):
 def render_quant_section_chart(history, field_key, title, color_accent):
     """
     Renders a quantitative SVG range-bar + actual-dot chart for a single asset (kospi / samsung / skhynix).
-    Shows last 15 trading days with 0.0% horizontal baseline, predicted range bars, and actual close dots.
+    Shows full 1 month (up to 30 trading days) with compact bar spacing, sparse X-axis labels, and interactive hover/click tooltip.
     """
-    items = history[-15:]
+    items = history[-30:]
     if not items:
         return ""
 
     svg_w = 880
     svg_h = 155
     pad_l, pad_r = 44, 16
-    pad_t, pad_b = 20, 26
+    pad_t, pad_b = 22, 24
     plot_w = svg_w - pad_l - pad_r
     plot_h = svg_h - pad_t - pad_b
 
@@ -135,9 +135,8 @@ def render_quant_section_chart(history, field_key, title, color_accent):
             if v is not None:
                 min_y = min(min_y, v - 0.8)
                 max_y = max(max_y, v + 0.8)
-        parsed_pts.append((h.get('date', '').split(' ')[0], p_low, p_high, act_val))
+        parsed_pts.append((h.get('date', '').split(' ')[0], p_low, p_high, act_val, h.get('date', ''), pred_str, act_str))
 
-    # Clamp extreme outliers nicely so chart stays readable (-11% to +8%)
     min_y = max(-11.5, min_y)
     max_y = min(8.5, max_y)
 
@@ -146,7 +145,6 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         ratio = (clamped - min_y) / (max_y - min_y)
         return pad_t + plot_h * (1.0 - ratio)
 
-    y_zero = y_pos(0.0)
     step_x = plot_w / max(1, len(parsed_pts))
 
     # Grid lines (-5%, 0%, +5%)
@@ -163,39 +161,50 @@ def render_quant_section_chart(history, field_key, title, color_accent):
             grid_html.append(f'<text x="{pad_l - 6}" y="{gy + 3:.1f}" text-anchor="end" font-size="10" fill="{lbl_col}" font-family="monospace" font-weight="bold">{label}</text>')
 
     bars_html = []
-    for idx, (d_lbl, p_low, p_high, act_val) in enumerate(parsed_pts):
+    total_pts = len(parsed_pts)
+    for idx, (d_lbl, p_low, p_high, act_val, full_date, pred_str, act_str) in enumerate(parsed_pts):
         cx = pad_l + step_x * (idx + 0.5)
         
-        # Draw Predicted Band Bar
+        is_hit = (act_val is not None and p_low is not None and p_high is not None and p_low <= act_val <= p_high)
+        dot_col = "#10b981" if is_hit else "#ef4444"
+        tooltip_txt = f"{full_date} | 예측: {pred_str} / 실제: {act_str} ({'⭕ 적중' if is_hit else '❌ 이탈'})"
+        safe_tip = tooltip_txt.replace("'", "\\'")
+
+        # Group with interactive click/hover
+        bars_html.append(f'<g style="cursor:pointer;" onclick="showChartTip(this, \'{safe_tip}\')">')
+        bars_html.append(f'<title>{tooltip_txt}</title>')
+        # Invisible hit area for easier touch on mobile
+        bars_html.append(f'<rect x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" />')
+        
+        # Draw Predicted Band Bar (compact width: 10px for 1 month)
         if p_low is not None and p_high is not None:
             y_top = y_pos(p_high)
             y_bot = y_pos(p_low)
             bar_h = max(3.0, y_bot - y_top)
-            bars_html.append(f'<rect x="{cx - 9:.1f}" y="{y_top:.1f}" width="18" height="{bar_h:.1f}" rx="3" fill="{color_accent}" opacity="0.32" stroke="{color_accent}" stroke-width="1" />')
+            bars_html.append(f'<rect x="{cx - 5:.1f}" y="{y_top:.1f}" width="10" height="{bar_h:.1f}" rx="2" fill="{color_accent}" opacity="0.38" stroke="{color_accent}" stroke-width="1" />')
 
-        # Draw Actual Close Dot + Label
+        # Draw Actual Close Dot
         if act_val is not None:
             ay = y_pos(act_val)
-            is_hit = (p_low is not None and p_high is not None and p_low <= act_val <= p_high)
-            dot_col = "#10b981" if is_hit else "#ef4444"
-            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="4.5" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.5" />')
-            # Value text above or below dot
-            txt_y = ay - 7 if act_val >= 0 else ay + 13
-            bars_html.append(f'<text x="{cx:.1f}" y="{txt_y:.1f}" text-anchor="middle" font-size="9" font-weight="bold" fill="{dot_col}" font-family="monospace">{act_val:+.1f}%</text>')
+            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="3.8" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.2" />')
 
-        # X-axis date label
-        bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 6}" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="monospace">{d_lbl}</text>')
+        # Sparse X-axis date labels (every 5th item + first & last)
+        if idx == 0 or idx == total_pts - 1 or idx % 5 == 0:
+            bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 6}" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="monospace">{d_lbl}</text>')
+        
+        bars_html.append('</g>')
 
     return f"""
-      <div style="margin-bottom:18px; background:#0f172a; border:1px solid #1e293b; border-radius:12px; padding:12px 14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <span style="font-size:0.92rem; font-weight:800; color:#fff;">{title}</span>
-          <span style="font-size:0.74rem; color:#94a3b8;">
-            <span style="display:inline-block; width:10px; height:10px; background:{color_accent}; opacity:0.5; border:1px solid {color_accent}; border-radius:2px; vertical-align:middle;"></span> 예측밴드 &nbsp;
+      <div style="margin-bottom:14px; background:#0f172a; border:1px solid {color_accent}40; border-radius:12px; padding:10px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:0.9rem; font-weight:800; color:{color_accent};">{title}</span>
+          <span style="font-size:0.72rem; color:#94a3b8;">
+            <span style="display:inline-block; width:8px; height:8px; background:{color_accent}; opacity:0.6; border:1px solid {color_accent}; border-radius:2px; vertical-align:middle;"></span> 예측 &nbsp;
             <span style="color:#10b981;">●</span> 적중 &nbsp;
             <span style="color:#ef4444;">●</span> 이탈
           </span>
         </div>
+        <div class="chart-tip-bar" style="font-size:0.75rem; color:#e2e8f0; min-height:18px; margin-bottom:2px;">👆 막대/점을 터치하면 상세 날짜·수치가 표시됩니다.</div>
         <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
           {''.join(grid_html)}
           {''.join(bars_html)}
@@ -207,9 +216,9 @@ def render_timeline_svg(history):
     if not history:
         return '<div style="color:var(--text-dim); text-align:center; padding:20px;">누적 기록이 없습니다.</div>'
     
-    c1 = render_quant_section_chart(history, 'kospi', '1️⃣ 코스피 (KOSPI)', '#818cf8')
-    c2 = render_quant_section_chart(history, 'samsung', '2️⃣ 삼성전자 (005930)', '#38bdf8')
-    c3 = render_quant_section_chart(history, 'skhynix', '3️⃣ SK하이닉스 (000660)', '#c084fc')
+    c1 = render_quant_section_chart(history, 'kospi', '1️⃣ 코스피 (KOSPI)', '#10b981')
+    c2 = render_quant_section_chart(history, 'samsung', '2️⃣ 삼성전자 (005930)', '#1428A0') # Samsung Signature Blue (brightened slightly for dark bg: #3b82f6 / #1d4ed8 -> #3b82f6)
+    c3 = render_quant_section_chart(history, 'skhynix', '3️⃣ SK하이닉스 (000660)', '#EA002C') # SK Hynix Signature Red
     return c1 + c2 + c3
 
 def render_html(data, session, now_kst):
@@ -253,7 +262,35 @@ def render_html(data, session, now_kst):
             <td><span class="sig-badge {sig_cls}">{ind['signalText']}</span></td>
           </tr>"""
 
-    # Stocks Cards
+    # Stocks Cards with Brand Signature Colors
+    BRAND_COLORS = {
+        '삼성전자': '#2563eb',       # Samsung Blue
+        '005930': '#2563eb',
+        'SK하이닉스': '#EA002C',     # SK Red
+        '000660': '#EA002C',
+        'SKHY': '#EA002C',
+        '엔비디아': '#76B900',       # NVIDIA Green
+        'NVDA': '#76B900',
+        '테슬라': '#E82127',         # Tesla Red
+        'TSLA': '#E82127',
+        '알파벳': '#4285F4',         # Google Blue
+        'GOOGL': '#4285F4',
+        '메타': '#0668E1',           # Meta Blue
+        'META': '#0668E1',
+        '아마존': '#FF9900',         # Amazon Orange
+        'AMZN': '#FF9900',
+        '마이크론': '#0077C8',       # Micron Blue
+        'MU': '#0077C8',
+        '팔란티어': '#94a3b8',       # Palantir Silver/Slate
+        'PLTR': '#94a3b8',
+        'GE 버노바': '#006B54',      # GE Vernova Green
+        'GEV': '#006B54',
+        '블룸에너지': '#10B981',     # Bloom Energy Emerald
+        'BE': '#10B981',
+        '웨스턴': '#005696',         # WDC Deep Blue
+        'WDC': '#005696'
+    }
+
     stocks_html = ""
     for s in data.get('stocks', []):
         chg_cls = "chg-up" if s['direction'] == 'up' else ("chg-down" if s['direction'] == 'down' else "chg-neutral")
@@ -261,8 +298,15 @@ def render_html(data, session, now_kst):
         safe_price = f"{s['price']} ({s['change']})".replace("'", "\\'")
         safe_desc = s['summary'].replace("'", "\\'").replace('"', '&quot;')
         safe_url = s.get('url', '').replace("'", "\\'")
+        
+        brand_col = '#334155'
+        for k, v in BRAND_COLORS.items():
+            if k in s['name']:
+                brand_col = v
+                break
+
         stocks_html += f"""
-      <div class="stock-card" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
+      <div class="stock-card" style="border-left: 4px solid {brand_col};" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
         <div class="stock-header">
           <span class="stock-name">{s['name']}</span>
           <span class="stock-chg {chg_cls}">{s['change']}</span>

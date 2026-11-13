@@ -551,6 +551,14 @@
     function closeRawDataModal() {
       document.getElementById('rawDataModal').classList.remove('open');
     }
+    function showChartTip(el, text) {
+      const container = el.closest('div');
+      const tipBar = container.querySelector('.chart-tip-bar');
+      if (tipBar) {
+        tipBar.textContent = '📌 ' + text;
+        tipBar.style.color = '#fbbf24';
+      }
+    }
   </script>
 </body>
 </html>
