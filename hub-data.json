@@ -1,5 +1,21 @@
 [
   {
+    "id": "2026-11-14-evening",
+    "date": "2026-11-14",
+    "session": "evening",
+    "title": "11.14(토) 마감 & 지표 감사",
+    "path": "docs/2026-11/2026-11-14-evening.html",
+    "timestamp": "2026-11-14 18:00"
+  },
+  {
+    "id": "2026-11-14-morning",
+    "date": "2026-11-14",
+    "session": "morning",
+    "title": "11.14(토) 개장 브리핑",
+    "path": "docs/2026-11/2026-11-14-morning.html",
+    "timestamp": "2026-11-14 07:30"
+  },
+  {
     "id": "2026-11-13-evening",
     "date": "2026-11-13",
     "session": "evening",
