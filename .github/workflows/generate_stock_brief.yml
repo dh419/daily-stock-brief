@@ -2,14 +2,12 @@ name: Generate and Publish Daily Stock Brief
 
 on:
   schedule:
-    # 주 7일 매일 오전 07:00 KST (UTC 전일 22:00) 모닝 브리핑
-    - cron: '0 22 * * *'
-    # 주 7일 매일 오후 19:00 KST (UTC 당일 10:00) 마감 분석 리포트
-    - cron: '0 10 * * *'
+    # 매 30분마다 Google Drive dashboard_incoming 주기 체크 (제미나이 앱 지연 자동 흡수)
+    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       session:
-        description: '브리핑 회차 선택 (morning: 오전 07:30 / evening: 오후 18:00)'
+        description: '브리핑 회차 선택 (morning: 오전 / evening: 오후)'
         required: true
         default: 'morning'
         type: choice
@@ -52,10 +50,13 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "session=${{ inputs.session }}" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.schedule }}" = "0 22 * * *" ]; then
-            echo "session=morning" >> $GITHUB_OUTPUT
           else
-            echo "session=evening" >> $GITHUB_OUTPUT
+            KST_HOUR=$(TZ=Asia/Seoul date +%H | sed 's/^0//')
+            if [ "$KST_HOUR" -ge 6 ] && [ "$KST_HOUR" -lt 14 ]; then
+              echo "session=morning" >> $GITHUB_OUTPUT
+            else
+              echo "session=evening" >> $GITHUB_OUTPUT
+            fi
           fi
 
       - name: Fetch JSON from Google Drive & Render Stock Brief
