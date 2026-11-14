@@ -2,8 +2,12 @@ name: Generate and Publish Daily Stock Brief
 
 on:
   schedule:
-    # 매 30분마다 Google Drive dashboard_incoming 주기 체크 (제미나이 앱 지연 자동 흡수)
-    - cron: '*/30 * * * *'
+    # 오전 07:00 ~ 08:30 KST (UTC 22:00 ~ 23:30) 10분 주기 체크
+    - cron: '*/10 22 * * *'
+    - cron: '0,10,20,30 23 * * *'
+    # 오후 19:00 ~ 20:30 KST (UTC 10:00 ~ 11:30) 10분 주기 체크
+    - cron: '*/10 10 * * *'
+    - cron: '0,10,20,30 11 * * *'
   workflow_dispatch:
     inputs:
       session:
