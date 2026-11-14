@@ -42,10 +42,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Google GenAI SDK
+      - name: Install Google Drive SDK
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai
+          pip install google-api-python-client google-auth
 
       - name: Determine Session
         id: determine
@@ -58,13 +58,11 @@ jobs:
             echo "session=evening" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run Gemini Stock Brief Engine
+      - name: Fetch JSON from Google Drive & Render Stock Brief
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API || secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ inputs.model || 'gemini-4-hydrogen' }}
-          THINKING_BUDGET: '2048'
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
         run: |
-          python scripts/generate_stock_brief.py --session ${{ steps.determine.outputs.session }}
+          python scripts/sync_from_gdrive.py --session ${{ steps.determine.outputs.session }}
 
       - name: Update Hub Index Data
         run: |
