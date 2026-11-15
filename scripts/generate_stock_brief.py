@@ -43,7 +43,7 @@ def extract_single_pct(s):
         return float(m.group(1))
     return None
 
-def render_band_meter(t, session):
+def render_band_meter(t, session, is_holiday=False):
     """
     Renders the horizontal target band meter with a fixed 0.0% center line.
     Dynamically scales to [-12%, +12%] if values exceed +/-5%, otherwise [-5%, +5%].
@@ -102,7 +102,10 @@ def render_band_meter(t, session):
         right_legend = f'<span style="color:#c7d2fe;">마감: {pred_label}</span>'
     else:
         left_legend = f'<span style="color:#c7d2fe;">마감: {pred_label}</span>'
-        right_legend = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>' if actual_v is not None else ''
+        if is_holiday:
+            right_legend = f'<span style="color:#94a3b8; font-weight:700;">휴장 ({actual_v:+.2f}% 직전 기준)</span>' if actual_v is not None else '<span style="color:#94a3b8; font-weight:700;">휴장</span>'
+        else:
+            right_legend = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>' if actual_v is not None else ''
 
     return f"""
       <div class="band-meter-wrap">
@@ -270,7 +273,8 @@ def render_html(data, session, now_kst):
     # Target Cards with explicit 0% Axis Meter & Signature Colors
     target_html = ""
     for t in data.get('targets', []):
-        meter_html = render_band_meter(t, session)
+        is_holiday = (data.get('todayAudit', {}).get('result') == '휴장' or '(휴장)' in data.get('reportTitle', ''))
+        meter_html = render_band_meter(t, session, is_holiday=is_holiday)
         t_col = '#10b981' # KOSPI Emerald
         if '삼성전자' in t['name'] or '005930' in t['code']:
             t_col = '#2563eb' # Samsung Blue
