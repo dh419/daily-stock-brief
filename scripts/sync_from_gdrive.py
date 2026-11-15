@@ -13,7 +13,7 @@ import generate_stock_brief as gsb
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS_DIR = os.path.join(REPO_ROOT, 'docs')
-FOLDER_ID = '1jQIwN8b4SG536ClUWPAg3qUjo4GTNrJz'
+FOLDER_ID = '1yxtjIIWVriE4u5ikOG-fh2FQY5fh853_'  # dashboard_incoming/daily-stock-brief
 KST = timezone(timedelta(hours=9))
 
 
@@ -41,7 +41,7 @@ def main():
     ).execute()
     files = res.get('files', [])
     if not files:
-        raise FileNotFoundError(f"No *{suffix} found in dashboard_incoming.")
+        raise FileNotFoundError(f"No *{suffix} found in dashboard_incoming/daily-stock-brief.")
 
     target = files[0]
     print(f"Fetching {target['name']} (ID: {target['id']})...")
