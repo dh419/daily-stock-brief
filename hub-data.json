@@ -1,5 +1,13 @@
 [
   {
+    "id": "2026-11-16-evening",
+    "date": "2026-11-16",
+    "session": "evening",
+    "title": "11.16(월) 마감 & 지표 감사",
+    "path": "docs/2026-11/2026-11-16-evening.html",
+    "timestamp": "2026-11-16 18:00"
+  },
+  {
     "id": "2026-11-16-morning",
     "date": "2026-11-16",
     "session": "morning",
