@@ -43,6 +43,21 @@ def extract_single_pct(s):
         return float(m.group(1))
     return None
 
+def infer_target_direction(t, low_v, high_v):
+    """Determine directional stance ('up', 'down', 'neutral') from explicit field or band midpoint."""
+    d = str(t.get('direction', '')).strip().lower()
+    if d in ('up', 'bull', '상승'):
+        return 'up'
+    if d in ('down', 'bear', '하락'):
+        return 'down'
+    if low_v is not None and high_v is not None:
+        mid = (low_v + high_v) / 2.0
+        if mid >= 0.25:
+            return 'up'
+        if mid <= -0.25:
+            return 'down'
+    return 'neutral'
+
 def render_band_meter(t, session, is_holiday=False):
     """
     Renders the horizontal target band meter with a fixed 0.0% center line.
@@ -92,8 +107,14 @@ def render_band_meter(t, session, is_holiday=False):
     is_hit = False
     if actual_v is not None:
         p_act = to_pct_pos(actual_v)
-        if low_v is not None and high_v is not None and (low_v <= actual_v <= high_v):
-            is_hit = True
+        pred_dir = infer_target_direction(t, low_v, high_v)
+        in_range = (low_v is not None and high_v is not None and (low_v <= actual_v <= high_v))
+        dir_ok = True
+        if pred_dir == 'up' and actual_v < 0:
+            dir_ok = False
+        elif pred_dir == 'down' and actual_v > 0:
+            dir_ok = False
+        is_hit = in_range and dir_ok
         pin_class = "hit" if is_hit else "miss"
         actual_html = f'<div class="meter-actual-pin {pin_class}" style="left:{p_act:.1f}%;" title="실제: {actual_v:+.2f}%"></div>'
 
@@ -105,7 +126,8 @@ def render_band_meter(t, session, is_holiday=False):
         if is_holiday:
             right_legend = f'<span style="color:#94a3b8; font-weight:700;">휴장 ({actual_v:+.2f}% 직전 기준)</span>' if actual_v is not None else '<span style="color:#94a3b8; font-weight:700;">휴장</span>'
         else:
-            right_legend = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>' if actual_v is not None else ''
+            miss_tag = "❌ 방향이탈" if (in_range and not dir_ok) else ("⭕" if is_hit else "❌")
+            right_legend = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({miss_tag})</span>' if actual_v is not None else ''
 
     return f"""
       <div class="band-meter-wrap">
@@ -275,6 +297,15 @@ def render_html(data, session, now_kst):
     for t in data.get('targets', []):
         is_holiday = (data.get('todayAudit', {}).get('result') == '휴장' or '(휴장)' in data.get('reportTitle', ''))
         meter_html = render_band_meter(t, session, is_holiday=is_holiday)
+        _rng_str = t.get('band', '') if session == 'morning' else t.get('gap', '')
+        _lv, _hv = extract_range_from_str(_rng_str)
+        _pdir = infer_target_direction(t, _lv, _hv)
+        if _pdir == 'up':
+            dir_badge = '<span style="background:#059669; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">▲ 상승 예측</span>'
+        elif _pdir == 'down':
+            dir_badge = '<span style="background:#e11d48; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">▼ 하락 예측</span>'
+        else:
+            dir_badge = '<span style="background:#475569; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">◆ 중립/양방향</span>'
         t_col = '#10b981' # KOSPI Emerald
         if '삼성전자' in t['name'] or '005930' in t['code']:
             t_col = '#2563eb' # Samsung Blue
@@ -283,8 +314,9 @@ def render_html(data, session, now_kst):
 
         target_html += f"""
       <div class="target-card" style="background: {t_col}24; border: 1px solid {t_col};">
-        <div class="target-header">
+        <div class="target-header" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <div class="target-name" style="color:#ffffff;">{t['name']}<span class="target-code" style="color:#cbd5e1;">{t['code']}</span></div>
+          {dir_badge}
         </div>
         {meter_html}
         <div class="target-desc" style="color:#e2e8f0;">{t['desc']}</div>
