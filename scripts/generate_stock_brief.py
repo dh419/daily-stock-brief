@@ -329,7 +329,15 @@ def render_html(data, session, now_kst):
             x2_i, y2_i = cx + r_in * math.cos(rad1), cy + r_in * math.sin(rad1)
             large_arc = 1 if sweep > 180 else 0
             d_path = f"M {x1_o:.1f} {y1_o:.1f} A {r_out} {r_out} 0 {large_arc} 1 {x2_o:.1f} {y2_o:.1f} L {x1_i:.1f} {y1_i:.1f} A {r_in} {r_in} 0 {large_arc} 0 {x2_i:.1f} {y2_i:.1f} Z"
-            short_kw = re.sub(r'^\d+\.\s*\[.*?\]\s*', '', ind['name'])[:6]
+            raw_name = re.sub(r'^\d+\.\s*', '', ind['name']).strip()
+            tag_m = re.match(r'^\[([^\]]+)\]\s*(.*)$', raw_name)
+            if tag_m:
+                tag_txt, rest_txt = tag_m.group(1), tag_m.group(2)
+                prefix = '공/' if '공통' in tag_txt else ('하/' if '하이닉스' in tag_txt else f'{tag_txt[0]}/')
+            else:
+                prefix, rest_txt = '', raw_name
+            rest_clean = re.sub(r'\s*\(.*?\)', '', rest_txt).replace(' ', '')
+            short_kw = f"{prefix}{rest_clean[:5].rstrip('·')}"
             pop_txt = f"{re.sub(r'^\d+\.\s*', '', ind['name'])} ({w_val}% · {ind['signalText']})"
             safe_pop = pop_txt.replace("'", "\\'")
             
@@ -442,7 +450,7 @@ def render_html(data, session, now_kst):
                 break
 
         stocks_html += f"""
-      <div class="stock-card" style="background: {brand_col}38; border: 1px solid {brand_col};" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
+      <div class="stock-card" data-dir="{s.get('direction', 'neutral')}" style="background: {brand_col}38; border: 1px solid {brand_col};" onclick="openStockModal('{safe_name}', '{safe_price}', '{safe_desc}', '{safe_url}')">
         <div class="stock-header">
           <span class="stock-name" style="color:#ffffff;">{s['name']}</span>
           <span class="stock-chg {chg_cls}">{s['change']}</span>
