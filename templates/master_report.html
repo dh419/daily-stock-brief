@@ -632,7 +632,8 @@
       const size = parseInt(document.getElementById('auditPageSize')?.value || '25', 10);
       const rows = Array.from(document.querySelectorAll('#auditTableBody tr'));
       const matched = rows.filter(tr => {
-        const resOk = auditResFilter === 'all' || tr.dataset.res === auditResFilter;
+        const rowRes = tr.dataset.res || (tr.querySelector('.eval-circle')?.textContent || '').trim();
+        const resOk = auditResFilter === 'all' || rowRes === auditResFilter;
         const textOk = !q || tr.textContent.toLowerCase().includes(q);
         return resOk && textOk;
       });
