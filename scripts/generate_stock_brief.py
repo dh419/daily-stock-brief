@@ -515,7 +515,7 @@ def render_html(data, session, now_kst):
     audit_html = ""
     for h in reversed(history):
         audit_html += f"""
-          <tr>
+          <tr data-res="{h['result']}">
             <td style="font-weight:700; white-space:nowrap;">{h['date']}</td>
             <td>{h['kospi']}</td>
             <td>{h['samsung']}</td>
