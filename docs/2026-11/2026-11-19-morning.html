@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script>try { var t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>11.19(목) 개장 브리핑 | AI Quantitative Stock Forecast</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --card-hover: #1e293b;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --up: #ef4444;      /* 한국 증시 상승: 빨간색 */
+      --up-soft: rgba(239, 68, 68, 0.15);
+      --down: #3b82f6;    /* 한국 증시 하락: 파란색 */
+      --down-soft: rgba(59, 130, 246, 0.15);
+      --neutral: #10b981; /* 적중/안정: 에메랄드 */
+      --amber: #f59e0b;
+      --accent: #6366f1;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1040px; margin: 0 auto; }
+
+    /* Header Bar */
+    header {
+      background: linear-gradient(135deg, #131d31 0%, #0d1527 100%);
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .badge-session {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid #334155;
+    }
+    .badge-session.morning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+    .badge-session.evening { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border-color: rgba(99, 102, 241, 0.3); }
+    .header-time { font-size: 0.82rem; color: var(--text-dim); }
+    h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; color: #fff; }
+    .header-summary { font-size: 0.92rem; color: #cbd5e1; line-height: 1.6; }
+
+    /* Key Macro Bar */
+    .macro-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .macro-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .macro-title { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+    .macro-val { font-size: 1.1rem; font-weight: 800; color: #fff; }
+    .macro-chg { font-size: 0.78rem; font-weight: 700; display: inline-block; margin-top: 2px; }
+    .chg-up { color: var(--up); }
+    .chg-down { color: var(--down); }
+    .chg-neutral { color: var(--text-muted); }
+
+    /* Section Titles */
+    .section-title {
+      font-size: 1.12rem;
+      font-weight: 800;
+      margin: 24px 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #fff;
+    }
+    .section-title span.sub { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); }
+    
+    /* 3 Main Targets Band Visualizer with Explicit 0% Axis */
+    .target-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .target-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px;
+      transition: border-color 0.15s;
+    }
+    .target-card:hover { border-color: #374151; }
+    .target-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .target-name { font-size: 1.05rem; font-weight: 800; }
+    .target-code { font-size: 0.78rem; color: var(--text-dim); margin-left: 4px; font-weight: normal; }
+    .target-gap { font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+
+    /* Dedicated Band Meter with Center 0% Reference Axis */
+    .band-meter-wrap {
+      margin: 10px 0 6px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 8px 10px 6px;
+    }
+    .meter-scale-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      font-family: monospace;
+      margin-bottom: 4px;
+    }
+    .meter-track {
+      height: 28px;
+      background: #1e293b;
+      border-radius: 6px;
+      position: relative;
+      overflow: visible;
+      display: flex;
+      align-items: center;
+    }
+    /* Fixed 0% Axis Line */
+    .axis-zero {
+      position: absolute;
+      left: 50%;
+      top: -3px;
+      bottom: -3px;
+      width: 2px;
+      background: #e2e8f0;
+      z-index: 10;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+    }
+    .axis-zero-label {
+      position: absolute;
+      left: 50%;
+      top: -16px;
+      transform: translateX(-50%);
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #f8fafc;
+      background: #334155;
+      padding: 1px 4px;
+      border-radius: 3px;
+      z-index: 11;
+    }
+    /* Forecast Range Band */
+    .meter-band {
+      position: absolute;
+      height: 100%;
+      background: rgba(99, 102, 241, 0.35);
+      border-left: 2px solid #818cf8;
+      border-right: 2px solid #818cf8;
+      border-radius: 2px;
+      z-index: 5;
+    }
+    /* Actual Pin Indicator */
+    .meter-actual-pin {
+      position: absolute;
+      top: -6px;
+      bottom: -6px;
+      width: 6px;
+      border-radius: 3px;
+      border: 1.5px solid #ffffff;
+      z-index: 15;
+    }
+    .meter-actual-pin.hit {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+    .meter-actual-pin.miss {
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+    }
+    .meter-legend {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .target-desc {
+      font-size: 0.83rem;
+      color: #94a3b8;
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+
+    /* 6 Active Indicators Matrix */
+    .indicators-table-wrap {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      text-align: left;
+    }
+    table.data-table th {
+      background: #1e293b;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: #cbd5e1;
+      border-bottom: 1px solid var(--card-border);
+      white-space: nowrap;
+    }
+    table.data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--card-border);
+      vertical-align: middle;
+    }
+    table.data-table tr:last-child td { border-bottom: none; }
+    .weight-pill {
+      display: inline-block;
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+    }
+    .sig-badge {
+      display: inline-block;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .sig-up { background: var(--up-soft); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .sig-down { background: var(--down-soft); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .sig-neutral { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    /* 13 Stock Grid - 2-Column Compact on Mobile */
+    .stocks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 600px) {
+      .stocks-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .stock-card { padding: 10px !important; }
+      .stock-name { font-size: 0.82rem !important; }
+      .stock-chg { font-size: 0.78rem !important; }
+      .stock-snippet { font-size: 0.74rem !important; -webkit-line-clamp: 2 !important; }
+    }
+    .stock-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .stock-card:hover { background: var(--card-hover); border-color: #3b82f6; }
+    .stock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .stock-name { font-size: 0.92rem; font-weight: 700; color: #fff; }
+    .stock-chg { font-size: 0.85rem; font-weight: 800; }
+    .stock-sub { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px; }
+    .stock-snippet {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.4;
+    }
+
+    /* Cumulative Binary Chart Container */
+    .chart-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chart-kpi {
+      display: flex;
+      gap: 16px;
+      align-items: baseline;
+    }
+    .kpi-num { font-size: 1.4rem; font-weight: 800; color: #fbbf24; }
+    .kpi-sub { font-size: 0.82rem; color: var(--text-muted); }
+    .btn-rawdata {
+      background: #1e293b;
+      border: 1px solid #3b82f6;
+      color: #93c5fd;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-rawdata:hover {
+      background: #2563eb;
+      color: #fff;
+    }
+
+    /* SVG Timeline Chart */
+    .timeline-svg {
+      width: 100%;
+      height: 130px;
+      display: block;
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 16px;
+      max-width: 600px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .close-btn {
+      background: #1f2937;
+      border: none;
+      color: #9ca3af;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .modal-link {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 8px 14px;
+      background: #2563eb;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px 0 12px;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+    /* svg-micro-animations */
+    @keyframes cv-pulse { 50% { opacity: 0.68; } }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    .meter-actual-pin.hit { animation: cv-pulse 2.2s ease-in-out infinite; }
+    .badge-session { animation: cv-pulse 3s ease-in-out infinite; }
+    .stock-card, .target-card, .macro-card { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.15s; }
+    .stock-card:hover, .target-card:hover, .macro-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32); }
+    .modal-backdrop.open .modal { animation: modalIn 0.18s ease-out; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-top">
+        <span class="badge-session morning">개장 (07:00)</span>
+        <span class="header-time">Updated: 2026-11-19 07:53 KST</span>
+      </div>
+      <h1>11.19(목) 개장 브리핑</h1>
+      <p class="header-summary">앤트로픽 공모가 $83 확정(역대 최대 IPO)에도 10월 FOMC 매파적 회의록·월러 50bp 시사·엔비디아 -2.89%가 겹치며 하방 압력이 우위입니다.
+코스피 전일 외국인 -3,276억원(3일 누적 -3.47조원) 순매도 지속과 달러인덱스 19개월 최고치 급등이 상단을 제한해 약세 출발이 유력합니다.</p>
+    </header>
+
+    <!-- Top Key Macro Indicators -->
+    <div class="macro-strip">
+      
+      <div class="macro-card">
+        <div class="macro-title">다우존스</div>
+        <div class="macro-val">50,198.17</div>
+        <div class="macro-chg chg-down" style="">-1.11%</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">S&P 500</div>
+        <div class="macro-val">7,323.63</div>
+        <div class="macro-chg chg-down" style="">-0.23%</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">나스닥</div>
+        <div class="macro-val">24,429.88</div>
+        <div class="macro-chg chg-up" style="">+0.42%</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">SOX (필라반도체)</div>
+        <div class="macro-val">9,529.6 (추정)</div>
+        <div class="macro-chg chg-up" style="">+0.10%</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">美 10년물 국채</div>
+        <div class="macro-val">5.10%</div>
+        <div class="macro-chg chg-down" style="">-3bp</div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-title">원·달러 (서울종가)</div>
+        <div class="macro-val">1,333.00원</div>
+        <div class="macro-chg chg-down" style="">-0.39%</div>
+      </div>
+    </div>
+
+    <!-- 3 Core Forecast Targets (with 0% Axis) -->
+    <div class="section-title">
+      <div>3대 축 시초·마감 밴드</div>
+    </div>
+    <div class="target-grid">
+      
+      <div class="target-card" style="background: #10b98124; border: 1px solid #10b981;">
+        <div class="target-header" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div class="target-name" style="color:#ffffff;">코스피<span class="target-code" style="color:#cbd5e1;">KOSPI</span></div>
+          <span style="background:#e11d48; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">▼ 하락 예측</span>
+        </div>
+        
+      <div class="band-meter-wrap">
+        <div class="meter-scale-header">
+          <span>-5%</span>
+          <span style="color:#e2e8f0; font-weight:800;">0.0%</span>
+          <span>+5%</span>
+        </div>
+        <div class="meter-track">
+          <div class="axis-zero"></div>
+          <div class="meter-band" style="left:30.0%; width:22.0%;"></div>
+          <div style="position:absolute; top:4px; bottom:4px; left:45.0%; width:4.0%; background:rgba(56, 189, 248, 0.45); border-left:2px solid #38bdf8; border-right:2px solid #38bdf8; border-radius:2px; z-index:7;" title="시초가: -0.5% ~ -0.1%"></div>
+          
+        </div>
+        <div class="meter-legend">
+          <span style="color:#38bdf8;">시초: -0.5% ~ -0.1%</span>
+          <span style="color:#c7d2fe;">마감: -2.0% ~ +0.2%</span>
+        </div>
+      </div>
+    
+        <div class="target-desc" style="color:#e2e8f0;">예상 밴드 4,966 ~ 5,078 (11/18 종가 5,067.44 기준). 5,000선 지지력 테스트 및 외국인 4거래일 연속 순매도·강달러 소화 여부가 핵심.</div>
+      </div>
+      <div class="target-card" style="background: #2563eb24; border: 1px solid #2563eb;">
+        <div class="target-header" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div class="target-name" style="color:#ffffff;">삼성전자<span class="target-code" style="color:#cbd5e1;">005930</span></div>
+          <span style="background:#e11d48; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">▼ 하락 예측</span>
+        </div>
+        
+      <div class="band-meter-wrap">
+        <div class="meter-scale-header">
+          <span>-5%</span>
+          <span style="color:#e2e8f0; font-weight:800;">0.0%</span>
+          <span>+5%</span>
+        </div>
+        <div class="meter-track">
+          <div class="axis-zero"></div>
+          <div class="meter-band" style="left:26.0%; width:26.0%;"></div>
+          <div style="position:absolute; top:4px; bottom:4px; left:44.0%; width:5.0%; background:rgba(56, 189, 248, 0.45); border-left:2px solid #38bdf8; border-right:2px solid #38bdf8; border-radius:2px; z-index:7;" title="시초가: -0.6% ~ -0.1%"></div>
+          
+        </div>
+        <div class="meter-legend">
+          <span style="color:#38bdf8;">시초: -0.6% ~ -0.1%</span>
+          <span style="color:#c7d2fe;">마감: -2.4% ~ +0.2%</span>
+        </div>
+      </div>
+    
+        <div class="target-desc" style="color:#e2e8f0;">예상 밴드 191,700 ~ 196,800원 (11/18 20:05 NXT 종가 196,400원 기준). 196,000원대 상단 저항 속 190,000~192,000원 지지선 방어 주시.</div>
+      </div>
+      <div class="target-card" style="background: #EA002C24; border: 1px solid #EA002C;">
+        <div class="target-header" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <div class="target-name" style="color:#ffffff;">SK하이닉스<span class="target-code" style="color:#cbd5e1;">000660</span></div>
+          <span style="background:#e11d48; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">▼ 하락 예측</span>
+        </div>
+        
+      <div class="band-meter-wrap">
+        <div class="meter-scale-header">
+          <span>-5%</span>
+          <span style="color:#e2e8f0; font-weight:800;">0.0%</span>
+          <span>+5%</span>
+        </div>
+        <div class="meter-track">
+          <div class="axis-zero"></div>
+          <div class="meter-band" style="left:18.0%; width:34.0%;"></div>
+          <div style="position:absolute; top:4px; bottom:4px; left:41.0%; width:7.0%; background:rgba(56, 189, 248, 0.45); border-left:2px solid #38bdf8; border-right:2px solid #38bdf8; border-radius:2px; z-index:7;" title="시초가: -0.9% ~ -0.2%"></div>
+          
+        </div>
+        <div class="meter-legend">
+          <span style="color:#38bdf8;">시초: -0.9% ~ -0.2%</span>
+          <span style="color:#c7d2fe;">마감: -3.2% ~ +0.2%</span>
+        </div>
+      </div>
+    
+        <div class="target-desc" style="color:#e2e8f0;">예상 밴드 1,116,000 ~ 1,155,000원 (11/18 20:00 NXT 종가 1,153,000원 기준). MU(-1.00%·시간외 -0.91%) 및 NVDA(-2.89%) 약세 연동으로 변동성 확대 경계.</div>
+      </div>
+    </div>
+
+    <!-- 6 Active Indicators Matrix (Mobile-friendly Card List) -->
+    <div class="section-title">
+      <div>6대 액티브 지표</div>
+    </div>
+    
+    <div style="background:rgba(30,41,59,0.72); border:1px solid rgba(99,102,241,0.35); border-left:4px solid #6366f1; border-radius:10px; padding:12px 14px; margin-bottom:12px;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:6px;">
+        <span style="background:#4f46e5; color:#ffffff; font-size:0.74rem; font-weight:800; padding:2px 8px; border-radius:5px;">[v3 상시 직교+뉴스모멘텀 · 비대칭 밴드] 고변동성 확장 국면 (VIX 24.56 >= 22)</span>
+        <span style="background:#0f172a; color:#38bdf8; border:1px solid #334155; font-size:0.74rem; font-weight:700; padding:2px 8px; border-radius:5px;">하방 우위 (신뢰도: 중)</span>
+        <span style="background:#0f172a; color:#fbbf24; border:1px solid #334155; font-size:0.74rem; font-weight:700; padding:2px 8px; border-radius:5px;">최근 10일 실현변동성 × 베타(코스피 1.0 / 삼전 1.2 / 하이닉스 1.8) + VIX>=22 추가확장(+0.35%p×베타) 적용. 3개 타겟 모두 direction='down' 확정으로 상단 저항선(+0.2%) 잠금 및 하방 비대칭 밴드 산정.</span>
+      </div>
+      <div style="font-size:0.84rem; color:#e2e8f0; line-height:1.45;">① 공통모델(코스피·삼전): EWY(+1.04%)·TSM(+0.83%) 소폭 상승에도 DXY 19개월 최고치·MU(-1.00%, 시간외 -0.91%)·외국인 3일 -3.47조원 순매도가 하방 압력 우위, 하이닉스 전용모델 역시 MU·NVDA(-2.89%) 약세로 하방 우위. ② 뉴스-수급 분리 검증: 앤트로픽 공모가 $83 상향 확정 호재가 존재하나 전일 외국인 순매도(-3,276억원 >= 3,000억원) 및 FOMC 50bp 인상 경계감과 충돌해 강세 점수를 반감 처리. ③ 비대칭 밴드: 0% 양쪽 대칭을 배제하고 상단 +0.2% 저항선 잠금 후 코스피 -2.0%~+0.2%, 삼성전자 -2.4%~+0.2%, SK하이닉스 -3.2%~+0.2% 설정.</div>
+    </div>
+    
+    <div style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:nowrap;">
+        <div style="position:relative; width:126px; height:126px; flex-shrink:0;">
+          <svg viewBox="0 0 120 120" style="width:100%; height:100%;">
+            <path d="M 60.0 8.0 A 52 52 0 0 1 98.6 25.2 L 82.3 39.9 A 30 30 0 0 0 60.0 30.0 Z" fill="#64748b" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip('[공통] 해외 선행 (EWY) (20% · 중립~소폭 상방 (시간외 둔화))')" /><text x="76.7" y="25.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">20%</text><path d="M 98.6 25.2 A 52 52 0 0 1 109.5 76.1 L 88.5 69.3 A 30 30 0 0 0 82.3 39.9 Z" fill="#3b82f6" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip('[공통] 글로벌 반도체 (SOX·TSM·MU) (25% · 중립~소폭 하방 (메모리 약세))')" /><text x="100.1" y="54.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">25%</text><path d="M 109.5 76.1 A 52 52 0 0 1 81.2 107.5 L 72.2 87.4 A 30 30 0 0 0 88.5 69.3 Z" fill="#3b82f6" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip('[공통] 매크로 스트레스 (VIX·DXY·금유가) (20% · 하방 (강달러·고변동성 압박))')" /><text x="90.5" y="90.4" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">20%</text><path d="M 81.2 107.5 A 52 52 0 0 1 38.8 107.5 L 47.8 87.4 A 30 30 0 0 0 72.2 87.4 Z" fill="#3b82f6" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip('[공통] 수급·외환 (외인3일·NDF) (20% · 하방 (외인 대규모 매도 지속))')" /><text x="60.0" y="104.0" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">20%</text><path d="M 38.8 107.5 A 52 52 0 0 1 15.0 86.0 L 34.0 75.0 A 30 30 0 0 0 47.8 87.4 Z" fill="#3b82f6" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip('[공통] 최신 뉴스·이벤트 모멘텀 (15% · 중립~하방 (매파 연준·NVDA 압도))')" /><text x="32.6" y="93.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">15%</text><path d="M 15.0 86.0 A 52 52 0 0 1 29.4 17.9 L 42.4 35.7 A 30 30 0 0 0 34.0 75.0 Z" fill="#3b82f6" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip('[하이닉스] 메모리·장비 (MU·SOX·AMAT) (35% · 하방 (MU $700 하회 연동))')" /><text x="19.9" y="54.5" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">35%</text><path d="M 29.4 17.9 A 52 52 0 0 1 60.0 8.0 L 60.0 30.0 A 30 30 0 0 0 42.4 35.7 Z" fill="#3b82f6" stroke="#0b0f19" stroke-width="1.5" style="cursor:pointer;" onclick="showDonutTip('[하이닉스] AI·변동성 (NVDA·VIX역방향) (15% · 하방 (NVDA 대장주 약세))')" /><text x="47.3" y="24.0" text-anchor="middle" font-size="8.5" font-weight="bold" fill="#fff" style="pointer-events:none;">15%</text>
+            <text x="60" y="57" text-anchor="middle" font-size="9" font-weight="bold" fill="#f87171">▲ 0%</text>
+            <text x="60" y="70" text-anchor="middle" font-size="9" font-weight="bold" fill="#60a5fa">▼ 130%</text>
+          </svg>
+        </div>
+        <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">
+          
+              <div onclick="showDonutTip('[공통] 해외 선행 (EWY) (20% · 중립~소폭 상방 (시간외 둔화))')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#64748b; flex-shrink:0;"></span>
+                  <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">공/해외선행</span>
+                </div>
+                <span style="color:#fff; font-weight:800; flex-shrink:0;">20%</span>
+              </div>
+            
+              <div onclick="showDonutTip('[공통] 글로벌 반도체 (SOX·TSM·MU) (25% · 중립~소폭 하방 (메모리 약세))')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#3b82f6; flex-shrink:0;"></span>
+                  <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">공/글로벌반도</span>
+                </div>
+                <span style="color:#fff; font-weight:800; flex-shrink:0;">25%</span>
+              </div>
+            
+              <div onclick="showDonutTip('[공통] 매크로 스트레스 (VIX·DXY·금유가) (20% · 하방 (강달러·고변동성 압박))')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#3b82f6; flex-shrink:0;"></span>
+                  <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">공/매크로스트</span>
+                </div>
+                <span style="color:#fff; font-weight:800; flex-shrink:0;">20%</span>
+              </div>
+            
+              <div onclick="showDonutTip('[공통] 수급·외환 (외인3일·NDF) (20% · 하방 (외인 대규모 매도 지속))')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#3b82f6; flex-shrink:0;"></span>
+                  <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">공/수급·외환</span>
+                </div>
+                <span style="color:#fff; font-weight:800; flex-shrink:0;">20%</span>
+              </div>
+            
+              <div onclick="showDonutTip('[공통] 최신 뉴스·이벤트 모멘텀 (15% · 중립~하방 (매파 연준·NVDA 압도))')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#3b82f6; flex-shrink:0;"></span>
+                  <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">공/최신뉴스</span>
+                </div>
+                <span style="color:#fff; font-weight:800; flex-shrink:0;">15%</span>
+              </div>
+            
+              <div onclick="showDonutTip('[하이닉스] 메모리·장비 (MU·SOX·AMAT) (35% · 하방 (MU $700 하회 연동))')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#3b82f6; flex-shrink:0;"></span>
+                  <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">하/메모리·장</span>
+                </div>
+                <span style="color:#fff; font-weight:800; flex-shrink:0;">35%</span>
+              </div>
+            
+              <div onclick="showDonutTip('[하이닉스] AI·변동성 (NVDA·VIX역방향) (15% · 하방 (NVDA 대장주 약세))')" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:0.78rem; padding:3px 6px; border-radius:6px; background:#0f172a;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                  <span style="display:inline-block; width:8px; height:8px; border-radius:2px; background:#3b82f6; flex-shrink:0;"></span>
+                  <span style="color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">하/AI·변동</span>
+                </div>
+                <span style="color:#fff; font-weight:800; flex-shrink:0;">15%</span>
+              </div>
+            
+        </div>
+      </div>
+      <div id="donutTipBar" style="margin-top:8px; font-size:0.78rem; font-weight:700; color:#fbbf24; display:none; padding:6px 10px; background:#0f172a; border-radius:6px; border:1px solid #334155;"></div>
+    </div>
+    
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+      
+          <div id="ind-1" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span class="weight-pill" style="flex-shrink:0;">20%</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; ">[공통] 해외 선행 (EWY)</span>
+              </div>
+              <span class="sig-badge sig-neutral" style="flex-shrink:0;">중립~소폭 상방 (시간외 둔화)</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.83rem; line-height:1.45;">11/18 EWY 정규장 $136.73 (+1.04%), 시간외 $136.31 (-0.31%)로 정규장 상승분 일부 반납</div>
+          </div>
+          <div id="ind-2" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span class="weight-pill" style="flex-shrink:0;">25%</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; ">[공통] 글로벌 반도체 (SOX·TSM·MU)</span>
+              </div>
+              <span class="sig-badge sig-down" style="flex-shrink:0;">중립~소폭 하방 (메모리 약세)</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.83rem; line-height:1.45;">SOX +0.10% 강보합, TSM +0.83%($362.62) 상승 반면 MU -1.00%($705.27, 시간외 -0.91%) 하락</div>
+          </div>
+          <div id="ind-3" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span class="weight-pill" style="flex-shrink:0;">20%</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; ">[공통] 매크로 스트레스 (VIX·DXY·금유가)</span>
+              </div>
+              <span class="sig-badge sig-down" style="flex-shrink:0;">하방 (강달러·고변동성 압박)</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.83rem; line-height:1.45;">VIX 24.56(-3.53%, >=22 고변동성 지속), DXY 19개월 최고치 급등, 금 -3.2%($3,741.90), WTI -3.2%($83.26)</div>
+          </div>
+          <div id="ind-4" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span class="weight-pill" style="flex-shrink:0;">20%</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; ">[공통] 수급·외환 (외인3일·NDF)</span>
+              </div>
+              <span class="sig-badge sig-down" style="flex-shrink:0;">하방 (외인 대규모 매도 지속)</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.83rem; line-height:1.45;">코스피 외국인 3일 누적 -3.47조원(11/18 -3,276억 >=3,000억 편향방지 발동), 서울종가 1,333.00원·최근 NDF 1,333.70원이나 DXY 급등으로 상방 압력</div>
+          </div>
+          <div id="ind-5" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span class="weight-pill" style="flex-shrink:0;">15%</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; ">[공통] 최신 뉴스·이벤트 모멘텀</span>
+              </div>
+              <span class="sig-badge sig-down" style="flex-shrink:0;">중립~하방 (매파 연준·NVDA 압도)</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.83rem; line-height:1.45;">① 앤트로픽 IPO $83 확정(역대 최대) ② 10월 FOMC 회의록 매파적·월러 50bp 시사 ③ 엔비디아 호실적에도 -2.89% ④ 트럼프-시진핑 선전 회담(11/19)</div>
+          </div>
+          <div id="ind-6" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span class="weight-pill" style="flex-shrink:0;">35% · 25%</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; ">[하이닉스] 메모리·장비 (MU·SOX·AMAT)</span>
+              </div>
+              <span class="sig-badge sig-down" style="flex-shrink:0;">하방 (MU $700 하회 연동)</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.83rem; line-height:1.45;">MU 정규 -1.00% 및 시간외 -0.91%($698.89), SOX +0.10%, AMAT 정규 +0.88%·시간외 -0.79%</div>
+          </div>
+          <div id="ind-7" style="background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; padding:12px 14px; transition: box-shadow 0.25s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:6px; flex:1; min-width:200px;">
+                <span class="weight-pill" style="flex-shrink:0;">15% · 10%</span>
+                <span style="font-weight:800; color:#fff; font-size:0.9rem; line-height:1.35; ">[하이닉스] AI·변동성 (NVDA·VIX역방향)</span>
+              </div>
+              <span class="sig-badge sig-down" style="flex-shrink:0;">하방 (NVDA 대장주 약세)</span>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.83rem; line-height:1.45;">NVDA -2.89%($150.96, 시간외 -0.19%) 급락, VIX 24.56(-3.53%)으로 일간 하락했으나 22 상회 지속</div>
+          </div>
+    </div>
+
+    <!-- 13 Core Stocks Grid -->
+    <div class="section-title">
+      <div>13개 관심 종목</div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem;" onclick="filterStocks('all', this)">전체</button>
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#ef4444; color:#f87171;" onclick="filterStocks('up', this)">상승 ▲</button>
+        <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#3b82f6; color:#60a5fa;" onclick="filterStocks('down', this)">하락 ▼</button>
+      </div>
+    </div>
+    <div class="stocks-grid" id="stocksGrid">
+      
+      <div class="stock-card" data-dir="up" style="background: #2563eb38; border: 1px solid #2563eb;" onclick="openStockModal('삼성전자 (005930)', '196,400원 (NXT 종가) (+3.21%)', '엔비디아 실적 기대감에 전일 NXT 3.21% 반등(KRX 194,700원)했으나, 간밤 엔비디아 -2.89% 및 MU 하락으로 차익실현 센티먼트 유입.
+핵심 리스크/지지선: 외국인 4거래일 연속 순매도 및 190,000~192,000원 단기 지지선 유지 여부가 관건.', 'https://m.newspim.com/news/view/20261118001065')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">삼성전자 (005930)</span>
+          <span class="stock-chg chg-up">+3.21%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">196,400원 (NXT 종가)</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">엔비디아 실적 기대감에 전일 NXT 3.21% 반등(KRX 194,700원)했으나, 간밤 엔비디아 -2.89% 및 MU 하락으로 차익실현 센티먼트 유입.
+핵심 리스크/지지선: 외국인 4거래일 연속 순매도 및 190,000~192,000원 단기 지지선 유지 여부가 관건.</div>
+      </div>
+      <div class="stock-card" data-dir="up" style="background: #EA002C38; border: 1px solid #EA002C;" onclick="openStockModal('SK하이닉스 (000660)', '1,153,000원 (NXT 종가) (+5.01%)', '전일 NXT 5.01% 급등(KRX 1,144,000원)으로 반등했으나, 미국 장후 MU 시간외 하락(-0.91%)과 엔비디아 약세로 시초가 경계감 확산.
+핵심 리스크/지지선: 외인 수급 이탈 및 1,116,000원 단기 지지선 이탈 시 변동성 확대 리스크.', 'https://m.newspim.com/news/view/20261118001065')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">SK하이닉스 (000660)</span>
+          <span class="stock-chg chg-up">+5.01%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">1,153,000원 (NXT 종가)</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">전일 NXT 5.01% 급등(KRX 1,144,000원)으로 반등했으나, 미국 장후 MU 시간외 하락(-0.91%)과 엔비디아 약세로 시초가 경계감 확산.
+핵심 리스크/지지선: 외인 수급 이탈 및 1,116,000원 단기 지지선 이탈 시 변동성 확대 리스크.</div>
+      </div>
+      <div class="stock-card" data-dir="down" style="background: #EA002C38; border: 1px solid #EA002C;" onclick="openStockModal('SK하이닉스 ADR (SKHY)', '$122.47 (-0.11%)', '정규장 보합권(-0.11%) 마감 후 시간외 $121.42(-0.86%)로 하락 전환하며 미국 메모리 섹터 약세 반영.
+핵심 리스크/지지선: 120달러 라운드 피겨 지지선 방어 여부와 미·중 정상회담 반도체 수출 규제 뉴스.', 'https://www.seoulfn.com/news/articleView.html?idxno=643266')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">SK하이닉스 ADR (SKHY)</span>
+          <span class="stock-chg chg-down">-0.11%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$122.47</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">정규장 보합권(-0.11%) 마감 후 시간외 $121.42(-0.86%)로 하락 전환하며 미국 메모리 섹터 약세 반영.
+핵심 리스크/지지선: 120달러 라운드 피겨 지지선 방어 여부와 미·중 정상회담 반도체 수출 규제 뉴스.</div>
+      </div>
+      <div class="stock-card" data-dir="down" style="background: #76B90038; border: 1px solid #76B900;" onclick="openStockModal('NVIDIA (NVDA)', '$150.96 (-2.89%)', 'Q3 매출 $1,158.4억 호실적·매출 75% 가이던스에도 젠슨 황 사퇴 이후 AI 인프라 금융지원 불확실성으로 투심 위축(시간외 -0.19%).
+핵심 리스크/지지선: 경영 공백 및 경쟁사 AMD(+5.31%) 약진 부담, 145~148달러 지지선 테스트.', 'https://www.seoulfn.com/news/articleView.html?idxno=643266')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">NVIDIA (NVDA)</span>
+          <span class="stock-chg chg-down">-2.89%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$150.96</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">Q3 매출 $1,158.4억 호실적·매출 75% 가이던스에도 젠슨 황 사퇴 이후 AI 인프라 금융지원 불확실성으로 투심 위축(시간외 -0.19%).
+핵심 리스크/지지선: 경영 공백 및 경쟁사 AMD(+5.31%) 약진 부담, 145~148달러 지지선 테스트.</div>
+      </div>
+      <div class="stock-card" data-dir="up" style="background: #E8212738; border: 1px solid #E82127;" onclick="openStockModal('Tesla (TSLA)', '$383.72 (+0.95%)', '빅테크 전반 반등 흐름 속 0.95% 상승했으나 시간외 $381.98(-0.45%)로 소폭 되돌림.
+핵심 리스크/지지선: 고금리 장기화·달러 강세 부담 속 375~380달러 단기 지지선 확인 필요.', 'https://www.seoulfn.com/news/articleView.html?idxno=643266')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">Tesla (TSLA)</span>
+          <span class="stock-chg chg-up">+0.95%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$383.72</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">빅테크 전반 반등 흐름 속 0.95% 상승했으나 시간외 $381.98(-0.45%)로 소폭 되돌림.
+핵심 리스크/지지선: 고금리 장기화·달러 강세 부담 속 375~380달러 단기 지지선 확인 필요.</div>
+      </div>
+      <div class="stock-card" data-dir="up" style="background: #4285F438; border: 1px solid #4285F4;" onclick="openStockModal('Alphabet (GOOGL)', '$282.44 (+0.80%)', '지분 보유 중인 앤트로픽 IPO 공모가 $83(기업가치 약 1.5조달러) 확정 모멘텀으로 정규장 +0.80% 및 시간외 +0.24% 강세.
+핵심 리스크/지지선: 상장 첫날 차익실현 출회 여부 및 278달러 지지선.', 'https://www.seoulfn.com/news/articleView.html?idxno=643266')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">Alphabet (GOOGL)</span>
+          <span class="stock-chg chg-up">+0.80%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$282.44</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">지분 보유 중인 앤트로픽 IPO 공모가 $83(기업가치 약 1.5조달러) 확정 모멘텀으로 정규장 +0.80% 및 시간외 +0.24% 강세.
+핵심 리스크/지지선: 상장 첫날 차익실현 출회 여부 및 278달러 지지선.</div>
+      </div>
+      <div class="stock-card" data-dir="down" style="background: #0668E138; border: 1px solid #0668E1;" onclick="openStockModal('Meta (META)', '$616.38 (-0.40%)', '연준 10월 FOMC 회의록 매파 기조와 AI 설비투자 수익성 우려에 소폭 약세(시간외 $614.50, -0.31%).
+핵심 리스크/지지선: AI 인프라 과잉투자 경계감 속 605~610달러 지지선 테스트.', 'https://m.newspim.com/news/view/20261119000027')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">Meta (META)</span>
+          <span class="stock-chg chg-down">-0.40%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$616.38</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">연준 10월 FOMC 회의록 매파 기조와 AI 설비투자 수익성 우려에 소폭 약세(시간외 $614.50, -0.31%).
+핵심 리스크/지지선: AI 인프라 과잉투자 경계감 속 605~610달러 지지선 테스트.</div>
+      </div>
+      <div class="stock-card" data-dir="up" style="background: #FF990038; border: 1px solid #FF9900;" onclick="openStockModal('Amazon (AMZN)', '$267.74 (+3.82%)', '핵심 파트너 앤트로픽 공모가 $83 상향 확정(총 조달 역대 최대 전망) 수혜가 부각되며 3.82% 급등(시간외 -0.16%).
+핵심 리스크/지지선: 11/19 앤트로픽 나스닥 상장 후 재료 소멸성 차익매물 출회 및 260달러 지지선.', 'https://www.yna.co.kr/view/AKR20261119010051091')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">Amazon (AMZN)</span>
+          <span class="stock-chg chg-up">+3.82%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$267.74</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">핵심 파트너 앤트로픽 공모가 $83 상향 확정(총 조달 역대 최대 전망) 수혜가 부각되며 3.82% 급등(시간외 -0.16%).
+핵심 리스크/지지선: 11/19 앤트로픽 나스닥 상장 후 재료 소멸성 차익매물 출회 및 260달러 지지선.</div>
+      </div>
+      <div class="stock-card" data-dir="down" style="background: #0077C838; border: 1px solid #0077C8;" onclick="openStockModal('Micron (MU)', '$705.27 (-1.00%)', '엔비디아 주가 하락과 맞물린 메모리 차익실현 매물에 정규장 -1.00% 및 시간외 -0.91%($698.89) 추가 약세.
+핵심 리스크/지지선: 700달러 심리적 지지선 회복 여부와 SK하이닉스 등 메모리 동조화 압력.', 'https://www.seoulfn.com/news/articleView.html?idxno=643266')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">Micron (MU)</span>
+          <span class="stock-chg chg-down">-1.00%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$705.27</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">엔비디아 주가 하락과 맞물린 메모리 차익실현 매물에 정규장 -1.00% 및 시간외 -0.91%($698.89) 추가 약세.
+핵심 리스크/지지선: 700달러 심리적 지지선 회복 여부와 SK하이닉스 등 메모리 동조화 압력.</div>
+      </div>
+      <div class="stock-card" data-dir="up" style="background: #94a3b838; border: 1px solid #94a3b8;" onclick="openStockModal('Palantir (PLTR)', '$156.67 (+0.07%)', '소프트웨어 업종 전반 약세 속에서도 강보합(+0.07%) 방어했으나 시간외 $155.80(-0.56%)로 소폭 밀림.
+핵심 리스크/지지선: 고밸류에이션 금리 민감도(10년물 5.10%) 및 150달러 지지선.', 'https://m.newspim.com/news/view/20261119000027')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">Palantir (PLTR)</span>
+          <span class="stock-chg chg-up">+0.07%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$156.67</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">소프트웨어 업종 전반 약세 속에서도 강보합(+0.07%) 방어했으나 시간외 $155.80(-0.56%)로 소폭 밀림.
+핵심 리스크/지지선: 고밸류에이션 금리 민감도(10년물 5.10%) 및 150달러 지지선.</div>
+      </div>
+      <div class="stock-card" data-dir="down" style="background: #006B5438; border: 1px solid #006B54;" onclick="openStockModal('GE Vernova (GEV)', '$772.22 (-0.99%)', '엔비디아 발 AI 인프라 투자 속도 조절 우려에 전력기기주 투심이 일부 위축되며 -0.99%(시간외 -0.29%) 하락.
+핵심 리스크/지지선: AI 데이터센터 전력 수요 둔화 우려 및 755~760달러 지지선.', 'https://m.newspim.com/news/view/20261119000027')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">GE Vernova (GEV)</span>
+          <span class="stock-chg chg-down">-0.99%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$772.22</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">엔비디아 발 AI 인프라 투자 속도 조절 우려에 전력기기주 투심이 일부 위축되며 -0.99%(시간외 -0.29%) 하락.
+핵심 리스크/지지선: AI 데이터센터 전력 수요 둔화 우려 및 755~760달러 지지선.</div>
+      </div>
+      <div class="stock-card" data-dir="down" style="background: #10B98138; border: 1px solid #10B981;" onclick="openStockModal('Bloom Energy (BE)', '$170.98 (-1.43%)', '연준 12월 50bp 인상 경계감 및 다우 1.11% 하락 속 금리 민감·인프라주 동반 약세로 -1.43%(시간외 -0.98%).
+핵심 리스크/지지선: 고금리 장기화 부담 및 165달러 단기 지지선 이탈 여부.', 'https://m.newspim.com/news/view/20261119000027')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">Bloom Energy (BE)</span>
+          <span class="stock-chg chg-down">-1.43%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$170.98</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">연준 12월 50bp 인상 경계감 및 다우 1.11% 하락 속 금리 민감·인프라주 동반 약세로 -1.43%(시간외 -0.98%).
+핵심 리스크/지지선: 고금리 장기화 부담 및 165달러 단기 지지선 이탈 여부.</div>
+      </div>
+      <div class="stock-card" data-dir="up" style="background: #00569638; border: 1px solid #005696;" onclick="openStockModal('SanDisk/WDC (WDC)', '$288.19 (+1.72%)', 'NAND·스토리지 수요 기대감에 정규장 +1.72% 강세를 보였으나 시간외 $286.80(-0.48%)로 일부 반납.
+핵심 리스크/지지선: MU 약세 파급 및 280달러 지지선 안착 여부.', 'https://m.newspim.com/news/view/20261119000027')">
+        <div class="stock-header">
+          <span class="stock-name" style="color:#ffffff;">SanDisk/WDC (WDC)</span>
+          <span class="stock-chg chg-up">+1.72%</span>
+        </div>
+        <div class="stock-sub" style="color:#cbd5e1;">$288.19</div>
+        <div class="stock-snippet" style="color:#e2e8f0;">NAND·스토리지 수요 기대감에 정규장 +1.72% 강세를 보였으나 시간외 $286.80(-0.48%)로 일부 반납.
+핵심 리스크/지지선: MU 약세 파급 및 280달러 지지선 안착 여부.</div>
+      </div>
+    </div>
+
+    <!-- Cumulative Binary Evaluation Chart (Replaces Plain Table) -->
+    <div class="section-title">
+      <div>누적 적중 추이</div>
+      <button class="btn-rawdata" onclick="openRawDataModal()">로그</button>
+    </div>
+    <div class="chart-box">
+      <div class="chart-header">
+        <div class="chart-kpi">
+          <div><span class="kpi-num">32.1%</span> <span class="kpi-sub">누적 적중률</span></div>
+          <div style="font-size:0.9rem; color:#cbd5e1;">총 28회 중 <strong style="color:#10b981;">적중(⭕) 9회</strong> / <strong style="color:#ef4444;">실패(❌) 19회</strong></div>
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-dim);">최근 25거래일 일별 적중 타임라인</div>
+      </div>
+      
+      <div style="margin-bottom:16px; background:#10b98122; border:1px solid #10b981; border-radius:12px; padding:12px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:0.95rem; font-weight:800; color:#ffffff;">코스피 (KOSPI) <span style="font-size:0.74rem; font-weight:500; color:#94a3b8;">(최근 20거래일)</span></span>
+          <span class="chart-tip-bar" style="font-size:0.78rem; color:#e2e8f0; font-weight:600;"></span>
+        </div>
+        <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+          <svg viewBox="0 0 880 210" style="width:100%; min-width:680px; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
+            <line x1="48" y1="155.8" x2="860" y2="155.8" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="159.8" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">-5%</text><line x1="48" y1="122.4" x2="860" y2="122.4" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="126.4" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">-2.5%</text><line x1="48" y1="89.1" x2="860" y2="89.1" stroke="#94a3b8" stroke-width="1.6"  /><text x="41" y="93.1" text-anchor="end" font-size="11" fill="#f8fafc" font-family="monospace" font-weight="bold">0.0%</text><line x1="48" y1="55.8" x2="860" y2="55.8" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="59.8" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">+2.5%</text><line x1="48" y1="22.5" x2="860" y2="22.5" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="26.5" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">+5%</text>
+            <polyline fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2" points="68.3,103.1 108.9,87.1 149.5,78.2 190.1,95.1 230.7,76.5 271.3,97.8 311.9,107.1 352.5,59.3 393.1,87.1 433.7,96.5 474.3,159.5 514.9,169.3 555.5,99.9 596.1,30.7 636.7,54.5 677.3,97.3 717.9,102.2 758.5,137.0 799.1,123.6 839.7,62.6" />
+            <g style="cursor:pointer;" onclick="showChartTip(this, '10.22 (목) | 예측: -0.6%~-1.2% / 실제: -1.05% (⭕ 적중)')"><title>10.22 (목) | 예측: -0.6%~-1.2% / 실제: -1.05% (⭕ 적중)</title><rect class="hl-col" x="48.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="60.3" y="97.1" width="16" height="8.0" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="68.3" cy="103.1" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /><text x="68.3" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.22</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.23 (금) | 예측: +0.4%~+1.0% / 실제: +0.15% (❌ 이탈)')"><title>10.23 (금) | 예측: +0.4%~+1.0% / 실제: +0.15% (❌ 이탈)</title><rect class="hl-col" x="88.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="100.9" y="75.8" width="16" height="8.0" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="108.9" cy="87.1" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.26 (월) | 예측: +0.5%~+1.1% / 실제: +0.82% (⭕ 적중)')"><title>10.26 (월) | 예측: +0.5%~+1.1% / 실제: +0.82% (⭕ 적중)</title><rect class="hl-col" x="129.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="141.5" y="74.5" width="16" height="8.0" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="149.5" cy="78.2" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.27 (화) | 예측: +0.3%~+0.8% / 실제: -0.45% (❌ 이탈)')"><title>10.27 (화) | 예측: +0.3%~+0.8% / 실제: -0.45% (❌ 이탈)</title><rect class="hl-col" x="169.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="182.1" y="78.5" width="16" height="6.7" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="190.1" cy="95.1" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="190.1" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.27</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.28 (수) | 예측: -0.4%~+0.2% / 실제: +0.95% (❌ 이탈)')"><title>10.28 (수) | 예측: -0.4%~+0.2% / 실제: +0.95% (❌ 이탈)</title><rect class="hl-col" x="210.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="222.7" y="86.5" width="16" height="8.0" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="230.7" cy="76.5" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.29 (목) | 예측: +0.4%~+0.9% / 실제: -0.65% (❌ 이탈)')"><title>10.29 (목) | 예측: +0.4%~+0.9% / 실제: -0.65% (❌ 이탈)</title><rect class="hl-col" x="251.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="263.3" y="77.2" width="16" height="6.7" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="271.3" cy="97.8" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.30 (금) | 예측: -0.5%~-1.2% / 실제: -1.35% (❌ 이탈)')"><title>10.30 (금) | 예측: -0.5%~-1.2% / 실제: -1.35% (❌ 이탈)</title><rect class="hl-col" x="291.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="303.9" y="95.8" width="16" height="9.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="311.9" cy="107.1" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="311.9" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.30</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.02 (월) | 예측: +0.8%~+1.5% / 실제: +2.24% (❌ 이탈)')"><title>11.02 (월) | 예측: +0.8%~+1.5% / 실제: +2.24% (❌ 이탈)</title><rect class="hl-col" x="332.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="344.5" y="69.2" width="16" height="9.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="352.5" cy="59.3" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.03 (화) | 예측: -0.2%~+0.5% / 실제: +0.15% (⭕ 적중)')"><title>11.03 (화) | 예측: -0.2%~+0.5% / 실제: +0.15% (⭕ 적중)</title><rect class="hl-col" x="372.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="385.1" y="82.5" width="16" height="9.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="393.1" cy="87.1" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.04 (수) | 예측: +0.4%~+1.0% / 실제: -0.55% (❌ 이탈)')"><title>11.04 (수) | 예측: +0.4%~+1.0% / 실제: -0.55% (❌ 이탈)</title><rect class="hl-col" x="413.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="425.7" y="75.8" width="16" height="8.0" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="433.7" cy="96.5" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="433.7" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.04</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.05 (목) | 예측: +0.3%~+0.8% / 실제: -5.28% (❌ 이탈)')"><title>11.05 (목) | 예측: +0.3%~+0.8% / 실제: -5.28% (❌ 이탈)</title><rect class="hl-col" x="454.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="466.3" y="78.5" width="16" height="6.7" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="474.3" cy="159.5" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.06 (금) | 예측: -0.5%~+0.5% / 실제: -6.02% (❌ 이탈)')"><title>11.06 (금) | 예측: -0.5%~+0.5% / 실제: -6.02% (❌ 이탈)</title><rect class="hl-col" x="494.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="506.9" y="82.5" width="16" height="13.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="514.9" cy="169.3" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.09 (월) | 예측: +1.2%~+2.8% / 실제: -0.81% (❌ 이탈)')"><title>11.09 (월) | 예측: +1.2%~+2.8% / 실제: -0.81% (❌ 이탈)</title><rect class="hl-col" x="535.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="547.5" y="51.8" width="16" height="21.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="555.5" cy="99.9" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="555.5" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.09</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.10 (화) | 예측: +1.5%~+3.0% / 실제: +4.39% (❌ 이탈)')"><title>11.10 (화) | 예측: +1.5%~+3.0% / 실제: +4.39% (❌ 이탈)</title><rect class="hl-col" x="575.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="588.1" y="49.2" width="16" height="20.0" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="596.1" cy="30.7" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.11 (수) | 예측: -1.0%~+0.5% / 실제: +2.60% (❌ 이탈)')"><title>11.11 (수) | 예측: -1.0%~+0.5% / 실제: +2.60% (❌ 이탈)</title><rect class="hl-col" x="616.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="628.7" y="82.5" width="16" height="20.0" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="636.7" cy="54.5" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.12 (목) | 예측: +1.2%~+2.8% / 실제: -0.61% (❌ 이탈)')"><title>11.12 (목) | 예측: +1.2%~+2.8% / 실제: -0.61% (❌ 이탈)</title><rect class="hl-col" x="657.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="669.3" y="51.8" width="16" height="21.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="677.3" cy="97.3" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="677.3" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.12</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.13 (금) | 예측: -0.8%~+0.6% / 실제: -0.98% (❌ 이탈)')"><title>11.13 (금) | 예측: -0.8%~+0.6% / 실제: -0.98% (❌ 이탈)</title><rect class="hl-col" x="697.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="709.9" y="81.1" width="16" height="18.7" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="717.9" cy="102.2" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.16 (월) | 예측: -1.8% ~ +0.4% / 실제: -3.59% (❌ 이탈)')"><title>11.16 (월) | 예측: -1.8% ~ +0.4% / 실제: -3.59% (❌ 이탈)</title><rect class="hl-col" x="738.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="750.5" y="83.8" width="16" height="29.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="758.5" cy="137.0" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.17 (화) | 예측: -3.2%~+0.8% / 실제: -2.59% (⭕) (⭕ 적중)')"><title>11.17 (화) | 예측: -3.2%~+0.8% / 실제: -2.59% (⭕) (⭕ 적중)</title><rect class="hl-col" x="778.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="791.1" y="78.5" width="16" height="53.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="799.1" cy="123.6" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /><text x="799.1" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.17</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.18 (수) | 예측: -1.8%~+2.2% / 실제: +1.99% (⭕) (⭕ 적중)')"><title>11.18 (수) | 예측: -1.8%~+2.2% / 실제: +1.99% (⭕) (⭕ 적중)</title><rect class="hl-col" x="819.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="831.7" y="59.8" width="16" height="53.3" rx="3" fill="#10b981" opacity="0.42" stroke="#10b981" stroke-width="1.3" /><circle cx="839.7" cy="62.6" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /><text x="839.7" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.18</text></g>
+          </svg>
+        </div>
+      </div>
+    
+      <div style="margin-bottom:16px; background:#2563eb22; border:1px solid #2563eb; border-radius:12px; padding:12px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:0.95rem; font-weight:800; color:#ffffff;">삼성전자 (005930) <span style="font-size:0.74rem; font-weight:500; color:#94a3b8;">(최근 20거래일)</span></span>
+          <span class="chart-tip-bar" style="font-size:0.78rem; color:#e2e8f0; font-weight:600;"></span>
+        </div>
+        <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+          <svg viewBox="0 0 880 210" style="width:100%; min-width:680px; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
+            <line x1="48" y1="146.2" x2="860" y2="146.2" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="150.2" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">-5%</text><line x1="48" y1="116.3" x2="860" y2="116.3" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="120.3" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">-2.5%</text><line x1="48" y1="86.3" x2="860" y2="86.3" stroke="#94a3b8" stroke-width="1.6"  /><text x="41" y="90.3" text-anchor="end" font-size="11" fill="#f8fafc" font-family="monospace" font-weight="bold">0.0%</text><line x1="48" y1="56.4" x2="860" y2="56.4" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="60.4" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">+2.5%</text><line x1="48" y1="26.5" x2="860" y2="26.5" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="30.5" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">+5%</text>
+            <polyline fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2" points="68.3,102.5 108.9,89.3 149.5,75.0 190.1,95.9 230.7,69.6 271.3,100.1 311.9,107.3 352.5,52.2 393.1,82.8 433.7,94.7 474.3,170.4 514.9,162.4 555.5,78.7 596.1,29.6 636.7,43.6 677.3,74.7 717.9,97.8 758.5,139.9 799.1,129.0 839.7,56.2" />
+            <g style="cursor:pointer;" onclick="showChartTip(this, '10.22 (목) | 예측: -0.8%~-1.5% / 실제: -1.35% (⭕ 적중)')"><title>10.22 (목) | 예측: -0.8%~-1.5% / 실제: -1.35% (⭕ 적중)</title><rect class="hl-col" x="48.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="60.3" y="95.9" width="16" height="8.4" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="68.3" cy="102.5" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /><text x="68.3" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.22</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.23 (금) | 예측: +0.5%~+1.2% / 실제: -0.25% (❌ 이탈)')"><title>10.23 (금) | 예측: +0.5%~+1.2% / 실제: -0.25% (❌ 이탈)</title><rect class="hl-col" x="88.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="100.9" y="72.0" width="16" height="8.4" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="108.9" cy="89.3" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.26 (월) | 예측: +0.6%~+1.4% / 실제: +0.95% (⭕ 적중)')"><title>10.26 (월) | 예측: +0.6%~+1.4% / 실제: +0.95% (⭕ 적중)</title><rect class="hl-col" x="129.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="141.5" y="69.6" width="16" height="9.6" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="149.5" cy="75.0" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.27 (화) | 예측: +0.4%~+1.0% / 실제: -0.80% (❌ 이탈)')"><title>10.27 (화) | 예측: +0.4%~+1.0% / 실제: -0.80% (❌ 이탈)</title><rect class="hl-col" x="169.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="182.1" y="74.4" width="16" height="7.2" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="190.1" cy="95.9" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="190.1" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.27</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.28 (수) | 예측: -0.5%~+0.5% / 실제: +1.40% (❌ 이탈)')"><title>10.28 (수) | 예측: -0.5%~+0.5% / 실제: +1.40% (❌ 이탈)</title><rect class="hl-col" x="210.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="222.7" y="80.4" width="16" height="12.0" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="230.7" cy="69.6" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.29 (목) | 예측: +0.5%~+1.1% / 실제: -1.15% (❌ 이탈)')"><title>10.29 (목) | 예측: +0.5%~+1.1% / 실제: -1.15% (❌ 이탈)</title><rect class="hl-col" x="251.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="263.3" y="73.2" width="16" height="7.2" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="271.3" cy="100.1" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.30 (금) | 예측: -0.8%~-1.6% / 실제: -1.75% (❌ 이탈)')"><title>10.30 (금) | 예측: -0.8%~-1.6% / 실제: -1.75% (❌ 이탈)</title><rect class="hl-col" x="291.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="303.9" y="95.9" width="16" height="9.6" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="311.9" cy="107.3" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="311.9" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.30</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.02 (월) | 예측: +1.0%~+2.0% / 실제: +2.85% (❌ 이탈)')"><title>11.02 (월) | 예측: +1.0%~+2.0% / 실제: +2.85% (❌ 이탈)</title><rect class="hl-col" x="332.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="344.5" y="62.4" width="16" height="12.0" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="352.5" cy="52.2" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.03 (화) | 예측: -0.3%~+0.6% / 실제: +0.30% (⭕ 적중)')"><title>11.03 (화) | 예측: -0.3%~+0.6% / 실제: +0.30% (⭕ 적중)</title><rect class="hl-col" x="372.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="385.1" y="79.2" width="16" height="10.8" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="393.1" cy="82.8" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.04 (수) | 예측: +0.5%~+1.2% / 실제: -0.70% (❌ 이탈)')"><title>11.04 (수) | 예측: +0.5%~+1.2% / 실제: -0.70% (❌ 이탈)</title><rect class="hl-col" x="413.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="425.7" y="72.0" width="16" height="8.4" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="433.7" cy="94.7" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="433.7" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.04</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.05 (목) | 예측: +0.4%~+1.0% / 실제: -7.02% (❌ 이탈)')"><title>11.05 (목) | 예측: +0.4%~+1.0% / 실제: -7.02% (❌ 이탈)</title><rect class="hl-col" x="454.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="466.3" y="74.4" width="16" height="7.2" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="474.3" cy="170.4" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.06 (금) | 예측: -0.8%~+0.5% / 실제: -6.35% (❌ 이탈)')"><title>11.06 (금) | 예측: -0.8%~+0.5% / 실제: -6.35% (❌ 이탈)</title><rect class="hl-col" x="494.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="506.9" y="80.4" width="16" height="15.6" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="514.9" cy="162.4" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.09 (월) | 예측: +1.2%~+3.8% / 실제: +0.64% (❌ 이탈)')"><title>11.09 (월) | 예측: +1.2%~+3.8% / 실제: +0.64% (❌ 이탈)</title><rect class="hl-col" x="535.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="547.5" y="40.8" width="16" height="31.1" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="555.5" cy="78.7" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="555.5" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.09</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.10 (화) | 예측: +1.2%~+3.5% / 실제: +4.74% (❌ 이탈)')"><title>11.10 (화) | 예측: +1.2%~+3.5% / 실제: +4.74% (❌ 이탈)</title><rect class="hl-col" x="575.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="588.1" y="44.4" width="16" height="27.5" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="596.1" cy="29.6" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.11 (수) | 예측: -1.2%~+1.0% / 실제: +3.57% (❌ 이탈)')"><title>11.11 (수) | 예측: -1.2%~+1.0% / 실제: +3.57% (❌ 이탈)</title><rect class="hl-col" x="616.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="628.7" y="74.4" width="16" height="26.3" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="636.7" cy="43.6" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.12 (목) | 예측: +1.2%~+3.5% / 실제: +0.97% (❌ 이탈)')"><title>11.12 (목) | 예측: +1.2%~+3.5% / 실제: +0.97% (❌ 이탈)</title><rect class="hl-col" x="657.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="669.3" y="44.4" width="16" height="27.5" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="677.3" cy="74.7" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="677.3" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.12</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.13 (금) | 예측: -0.8%~+1.5% / 실제: -0.96% (❌ 이탈)')"><title>11.13 (금) | 예측: -0.8%~+1.5% / 실제: -0.96% (❌ 이탈)</title><rect class="hl-col" x="697.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="709.9" y="68.4" width="16" height="27.5" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="717.9" cy="97.8" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.16 (월) | 예측: -1.5% ~ +0.8% / 실제: -4.47% (❌ 이탈)')"><title>11.16 (월) | 예측: -1.5% ~ +0.8% / 실제: -4.47% (❌ 이탈)</title><rect class="hl-col" x="738.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="750.5" y="76.8" width="16" height="27.5" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="758.5" cy="139.9" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.17 (화) | 예측: -3.8%~+1.0% / 실제: -3.56% NXT (⭕) (⭕ 적중)')"><title>11.17 (화) | 예측: -3.8%~+1.0% / 실제: -3.56% NXT (⭕) (⭕ 적중)</title><rect class="hl-col" x="778.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="791.1" y="74.4" width="16" height="57.5" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="799.1" cy="129.0" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /><text x="799.1" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.17</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.18 (수) | 예측: -2.2%~+2.6% / 실제: +2.52% NXT (⭕) (⭕ 적중)')"><title>11.18 (수) | 예측: -2.2%~+2.6% / 실제: +2.52% NXT (⭕) (⭕ 적중)</title><rect class="hl-col" x="819.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="831.7" y="55.2" width="16" height="57.5" rx="3" fill="#2563eb" opacity="0.42" stroke="#2563eb" stroke-width="1.3" /><circle cx="839.7" cy="56.2" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /><text x="839.7" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.18</text></g>
+          </svg>
+        </div>
+      </div>
+    
+      <div style="margin-bottom:16px; background:#EA002C22; border:1px solid #EA002C; border-radius:12px; padding:12px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:0.95rem; font-weight:800; color:#ffffff;">SK하이닉스 (000660) <span style="font-size:0.74rem; font-weight:500; color:#94a3b8;">(최근 20거래일)</span></span>
+          <span class="chart-tip-bar" style="font-size:0.78rem; color:#e2e8f0; font-weight:600;"></span>
+        </div>
+        <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+          <svg viewBox="0 0 880 210" style="width:100%; min-width:680px; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
+            <line x1="48" y1="126.7" x2="860" y2="126.7" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="130.7" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">-5%</text><line x1="48" y1="105.3" x2="860" y2="105.3" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="109.3" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">-2.5%</text><line x1="48" y1="84.0" x2="860" y2="84.0" stroke="#94a3b8" stroke-width="1.6"  /><text x="41" y="88.0" text-anchor="end" font-size="11" fill="#f8fafc" font-family="monospace" font-weight="bold">0.0%</text><line x1="48" y1="62.6" x2="860" y2="62.6" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="66.6" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">+2.5%</text><line x1="48" y1="41.3" x2="860" y2="41.3" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 3" /><text x="41" y="45.3" text-anchor="end" font-size="11" fill="#64748b" font-family="monospace" font-weight="bold">+5%</text>
+            <polyline fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2" points="68.3,100.2 108.9,80.6 149.5,69.0 190.1,92.1 230.7,68.2 271.3,96.8 311.9,108.3 352.5,54.9 393.1,81.8 433.7,93.4 474.3,162.1 514.9,173.2 555.5,81.0 596.1,26.8 636.7,38.2 677.3,94.0 717.9,109.9 758.5,151.4 799.1,99.3 839.7,41.2" />
+            <g style="cursor:pointer;" onclick="showChartTip(this, '10.22 (목) | 예측: -1.2%~-2.2% / 실제: -1.90% (⭕ 적중)')"><title>10.22 (목) | 예측: -1.2%~-2.2% / 실제: -1.90% (⭕ 적중)</title><rect class="hl-col" x="48.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="60.3" y="94.2" width="16" height="8.5" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="68.3" cy="100.2" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /><text x="68.3" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.22</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.23 (금) | 예측: +0.8%~+1.8% / 실제: +0.40% (❌ 이탈)')"><title>10.23 (금) | 예측: +0.8%~+1.8% / 실제: +0.40% (❌ 이탈)</title><rect class="hl-col" x="88.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="100.9" y="68.6" width="16" height="8.5" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="108.9" cy="80.6" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.26 (월) | 예측: +1.2%~+2.2% / 실제: +1.75% (⭕ 적중)')"><title>10.26 (월) | 예측: +1.2%~+2.2% / 실제: +1.75% (⭕ 적중)</title><rect class="hl-col" x="129.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="141.5" y="65.2" width="16" height="8.5" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="149.5" cy="69.0" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.27 (화) | 예측: +0.5%~+1.5% / 실제: -0.95% (❌ 이탈)')"><title>10.27 (화) | 예측: +0.5%~+1.5% / 실제: -0.95% (❌ 이탈)</title><rect class="hl-col" x="169.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="182.1" y="71.2" width="16" height="8.5" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="190.1" cy="92.1" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="190.1" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.27</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.28 (수) | 예측: -0.8%~+0.5% / 실제: +1.85% (❌ 이탈)')"><title>10.28 (수) | 예측: -0.8%~+0.5% / 실제: +1.85% (❌ 이탈)</title><rect class="hl-col" x="210.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="222.7" y="79.7" width="16" height="11.1" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="230.7" cy="68.2" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.29 (목) | 예측: +0.8%~+1.8% / 실제: -1.50% (❌ 이탈)')"><title>10.29 (목) | 예측: +0.8%~+1.8% / 실제: -1.50% (❌ 이탈)</title><rect class="hl-col" x="251.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="263.3" y="68.6" width="16" height="8.5" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="271.3" cy="96.8" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '10.30 (금) | 예측: -1.5%~-2.5% / 실제: -2.85% (❌ 이탈)')"><title>10.30 (금) | 예측: -1.5%~-2.5% / 실제: -2.85% (❌ 이탈)</title><rect class="hl-col" x="291.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="303.9" y="96.8" width="16" height="8.5" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="311.9" cy="108.3" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="311.9" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">10.30</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.02 (월) | 예측: +1.5%~+3.0% / 실제: +3.40% (❌ 이탈)')"><title>11.02 (월) | 예측: +1.5%~+3.0% / 실제: +3.40% (❌ 이탈)</title><rect class="hl-col" x="332.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="344.5" y="58.4" width="16" height="12.8" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="352.5" cy="54.9" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.03 (화) | 예측: -0.5%~+0.8% / 실제: +0.25% (⭕ 적중)')"><title>11.03 (화) | 예측: -0.5%~+0.8% / 실제: +0.25% (⭕ 적중)</title><rect class="hl-col" x="372.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="385.1" y="77.1" width="16" height="11.1" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="393.1" cy="81.8" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.04 (수) | 예측: +0.8%~+1.8% / 실제: -1.10% (❌ 이탈)')"><title>11.04 (수) | 예측: +0.8%~+1.8% / 실제: -1.10% (❌ 이탈)</title><rect class="hl-col" x="413.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="425.7" y="68.6" width="16" height="8.5" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="433.7" cy="93.4" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="433.7" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.04</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.05 (목) | 예측: +0.5%~+1.5% / 실제: -9.15% (❌ 이탈)')"><title>11.05 (목) | 예측: +0.5%~+1.5% / 실제: -9.15% (❌ 이탈)</title><rect class="hl-col" x="454.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="466.3" y="71.2" width="16" height="8.5" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="474.3" cy="162.1" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.06 (금) | 예측: -1.0%~+0.8% / 실제: -10.44% (❌ 이탈)')"><title>11.06 (금) | 예측: -1.0%~+0.8% / 실제: -10.44% (❌ 이탈)</title><rect class="hl-col" x="494.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="506.9" y="77.1" width="16" height="15.4" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="514.9" cy="173.2" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.09 (월) | 예측: +3.0%~+6.5% / 실제: +0.35% (❌ 이탈)')"><title>11.09 (월) | 예측: +3.0%~+6.5% / 실제: +0.35% (❌ 이탈)</title><rect class="hl-col" x="535.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="547.5" y="28.5" width="16" height="29.9" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="555.5" cy="81.0" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="555.5" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.09</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.10 (화) | 예측: +2.0%~+5.5% / 실제: +6.69% (❌ 이탈)')"><title>11.10 (화) | 예측: +2.0%~+5.5% / 실제: +6.69% (❌ 이탈)</title><rect class="hl-col" x="575.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="588.1" y="37.0" width="16" height="29.9" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="596.1" cy="26.8" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.11 (수) | 예측: -2.0%~+1.5% / 실제: +5.36% (❌ 이탈)')"><title>11.11 (수) | 예측: -2.0%~+1.5% / 실제: +5.36% (❌ 이탈)</title><rect class="hl-col" x="616.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="628.7" y="71.2" width="16" height="29.9" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="636.7" cy="38.2" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.12 (목) | 예측: +2.0%~+5.5% / 실제: -1.17% (❌ 이탈)')"><title>11.12 (목) | 예측: +2.0%~+5.5% / 실제: -1.17% (❌ 이탈)</title><rect class="hl-col" x="657.0" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="669.3" y="37.0" width="16" height="29.9" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="677.3" cy="94.0" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="677.3" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.12</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.13 (금) | 예측: -2.5%~+1.0% / 실제: -3.03% (❌ 이탈)')"><title>11.13 (금) | 예측: -2.5%~+1.0% / 실제: -3.03% (❌ 이탈)</title><rect class="hl-col" x="697.6" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="709.9" y="75.4" width="16" height="29.9" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="717.9" cy="109.9" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.16 (월) | 예측: -3.5% ~ +0.5% / 실제: -7.89% (❌ 이탈)')"><title>11.16 (월) | 예측: -3.5% ~ +0.5% / 실제: -7.89% (❌ 이탈)</title><rect class="hl-col" x="738.2" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="750.5" y="79.7" width="16" height="34.2" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="758.5" cy="151.4" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.17 (화) | 예측: -5.8%~+1.2% / 실제: -1.79% NXT (⭕) (⭕ 적중)')"><title>11.17 (화) | 예측: -5.8%~+1.2% / 실제: -1.79% NXT (⭕) (⭕ 적중)</title><rect class="hl-col" x="778.8" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="791.1" y="73.7" width="16" height="59.8" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="799.1" cy="99.3" r="5.0" fill="#10b981" stroke="#0b0f19" stroke-width="1.6" /><text x="799.1" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.17</text></g><g style="cursor:pointer;" onclick="showChartTip(this, '11.18 (수) | 예측: -2.8%~+4.2% / 실제: +5.01% NXT (❌ VOL_ERR) (❌ 이탈)')"><title>11.18 (수) | 예측: -2.8%~+4.2% / 실제: +5.01% NXT (❌ VOL_ERR) (❌ 이탈)</title><rect class="hl-col" x="819.4" y="20" width="40.6" height="160" fill="transparent" rx="3" /><rect x="831.7" y="48.1" width="16" height="59.8" rx="3" fill="#EA002C" opacity="0.42" stroke="#EA002C" stroke-width="1.3" /><circle cx="839.7" cy="41.2" r="5.0" fill="#ef4444" stroke="#0b0f19" stroke-width="1.6" /><text x="839.7" y="202" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">11.18</text></g>
+          </svg>
+        </div>
+      </div>
+    
+    </div>
+
+    <footer>
+      🤖 Powered by Gemini 4 Hydrogen · Automated by GitHub Actions &amp; GitHub Pages<br>
+      본 리포트는 정량적 통계 및 선행 지표 가중치 모델에 기반한 시장 예측 분석으로, 투자 권유가 아니며 모든 투자의 책임은 본인에게 있습니다.
+    </footer>
+  </div>
+
+  <!-- Detail Modal for Stocks -->
+  <div class="modal-backdrop" id="stockModal" onclick="closeStockModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalStockName" style="font-size:1.15rem; color:#fff;"></h3>
+          <div id="modalStockPrice" style="font-size:0.92rem; font-weight:700; margin-top:2px;"></div>
+        </div>
+        <button class="close-btn" onclick="closeStockModal()">✕</button>
+      </div>
+      <div id="modalStockDesc" style="font-size:0.86rem; color:#cbd5e1; line-height:1.6; margin-top:8px;"></div>
+      <div style="margin-top:14px;">
+        <a id="modalStockLink" class="modal-link" target="_blank" rel="noopener">📰 원문 기사 / 데이터 출처 보기</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Raw Data Modal for Audit History -->
+  <div class="modal-backdrop" id="rawDataModal" onclick="closeRawDataModal()">
+    <div class="modal" style="max-width:1080px; width:95vw;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-size:1.15rem; color:#fff;">최근 1개월 누적 마감 로그</h3>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">엄격한 이진 판정(⭕/❌) 상세 로그</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+          <input id="auditSearch" type="search" placeholder="일자·사유 검색" aria-label="로그 검색" oninput="applyAuditFilters()" style="padding:4px 8px; font-size:0.74rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); width:130px;">
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem;" onclick="filterAuditRows('all')">전체</button>
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#10b981; color:#34d399;" onclick="filterAuditRows('⭕')">⭕ 적중</button>
+          <button class="btn-rawdata" style="padding:4px 10px; font-size:0.74rem; border-color:#ef4444; color:#f87171;" onclick="filterAuditRows('❌')">❌ 실패</button>
+          <select id="auditPageSize" aria-label="페이지당 행 수" onchange="applyAuditFilters(1)" style="padding:4px 6px; font-size:0.74rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text);">
+            <option value="25">25행</option>
+            <option value="50">50행</option>
+            <option value="100">100행</option>
+          </select>
+          <span id="auditCount" aria-live="polite" style="font-size:0.74rem; color:var(--text-muted);"></span>
+          <button class="close-btn" onclick="closeRawDataModal()">✕</button>
+        </div>
+      </div>
+      <div class="indicators-table-wrap" role="region" aria-label="예측 및 실제 결과 로그" tabindex="0" style="max-height:64vh; margin-bottom:8px;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>일자</th>
+              <th>코스피 (예상 / 실제)</th>
+              <th>삼성전자 (예상 / 실제)</th>
+              <th>SK하이닉스 (예상 / 실제)</th>
+              <th style="text-align:center;">판정</th>
+              <th>핵심 결과 및 오차 사유</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody">
+            
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.18 (수)</td>
+            <td>-1.8%~+2.2% / +1.99% (⭕)</td>
+            <td>-2.2%~+2.6% / +2.52% NXT (⭕)</td>
+            <td>-2.8%~+4.2% / +5.01% NXT (❌ VOL_ERR)</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">코스피·삼성전자 적중(⭕) 및 방향성 전원 일치, SK하이닉스(+5.01% NXT) 상단(+4.2%) +0.81%p 돌파로 변동성 과소평가(VOL_ERR)</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">11.17 (화)</td>
+            <td>-3.2%~+0.8% / -2.59% (⭕)</td>
+            <td>-3.8%~+1.0% / -3.56% NXT (⭕)</td>
+            <td>-5.8%~+1.2% / -1.79% NXT (⭕)</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">코스피·삼성전자·SK하이닉스 3종목 전원 v2 동적 밴드 내 적중 (VIX>=22 확장 효과로 외인 -1.44조 매도세·수출규제 충격 방어)</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.16 (월)</td>
+            <td>-1.8% ~ +0.4% / -3.59%</td>
+            <td>-1.5% ~ +0.8% / -4.47%</td>
+            <td>-3.5% ~ +0.5% / -7.89%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">하방 방향성은 일치했으나, 외국인 1.7조원 투매 및 D램 담합 소송 악재로 변동성 과소평가(전 타깃 하방 밴드 초과 이탈)</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.13 (금)</td>
+            <td>-0.8%~+0.6% / -0.98%</td>
+            <td>-0.8%~+1.5% / -0.96%</td>
+            <td>-2.5%~+1.0% / -3.03%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">② 변동성 과소평가 (외국인 5,505억 매도 전환·하이닉스 4,714억 집중 매도로 하단 이탈)</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.12 (목)</td>
+            <td>+1.2%~+2.8% / -0.61%</td>
+            <td>+1.2%~+3.5% / +0.97%</td>
+            <td>+2.0%~+5.5% / -1.17%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">반도체 상승 전망했으나 옵션만기 기관 9,908억 프로그램 매물 및 젠슨 황 해임설 2차 파장으로 하방 이탈</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.11 (수)</td>
+            <td>-1.0%~+0.5% / +2.60%</td>
+            <td>-1.2%~+1.0% / +3.57%</td>
+            <td>-2.0%~+1.5% / +5.36%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">美 CPI 금리 우려로 숨고르기 예상했으나 코어위브 호실적 및 외인 반도체 폭풍 매수로 폭등 상단 이탈</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.10 (화)</td>
+            <td>+1.5%~+3.0% / +4.39%</td>
+            <td>+1.2%~+3.5% / +4.74%</td>
+            <td>+2.0%~+5.5% / +6.69%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">반등 방향은 정확했으나 외인 8일 만의 매수 전환 및 매수 사이드카 발동으로 예측 상단 초과 폭등</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.09 (월)</td>
+            <td>+1.2%~+2.8% / -0.81%</td>
+            <td>+1.2%~+3.8% / +0.64%</td>
+            <td>+3.0%~+6.5% / +0.35%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">장중 5,170선(+2.2%) 급반등했으나 외인 8,647억 연속 매도 및 바이오(-16%) 폭락에 종가 하방 이탈</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.06 (금)</td>
+            <td>-0.5%~+0.5% / -6.02%</td>
+            <td>-0.8%~+0.5% / -6.35%</td>
+            <td>-1.0%~+0.8% / -10.44%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">지지선 형성 전망했으나 외인 2.77조 투매 및 서킷브레이커 폭락 오판</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.05 (목)</td>
+            <td>+0.3%~+0.8% / -5.28%</td>
+            <td>+0.4%~+1.0% / -7.02%</td>
+            <td>+0.5%~+1.5% / -9.15%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 의회 선거 결과 여파로 촉발된 AI 규제 우려 및 패닉 셀링 오판</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.04 (수)</td>
+            <td>+0.4%~+1.0% / -0.55%</td>
+            <td>+0.5%~+1.2% / -0.70%</td>
+            <td>+0.8%~+1.8% / -1.10%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">선거 랠리 기대했으나 개표 불확실성에 따른 위험자산 회피 오판</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">11.03 (화)</td>
+            <td>-0.2%~+0.5% / +0.15%</td>
+            <td>-0.3%~+0.6% / +0.30%</td>
+            <td>-0.5%~+0.8% / +0.25%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 중간선거 관망세 속 보합권 숨고르기 장세 밴드 적중</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">11.02 (월)</td>
+            <td>+0.8%~+1.5% / +2.24%</td>
+            <td>+1.0%~+2.0% / +2.85%</td>
+            <td>+1.5%~+3.0% / +3.40%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">11월 첫 거래일 반등 예상했으나 2% 넘는 폭등세로 예측 상단 초과 이탈</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">10.30 (금)</td>
+            <td>-0.5%~-1.2% / -1.35%</td>
+            <td>-0.8%~-1.6% / -1.75%</td>
+            <td>-1.5%~-2.5% / -2.85%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">월말 윈도우 드레싱 기대 대비 외인/기관 동반 투매로 하방 이탈</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">10.29 (목)</td>
+            <td>+0.4%~+0.9% / -0.65%</td>
+            <td>+0.5%~+1.1% / -1.15%</td>
+            <td>+0.8%~+1.8% / -1.50%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 증시 호조에도 불구, 국내 반도체 차익 실현 매물 폭탄 오판</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">10.28 (수)</td>
+            <td>-0.4%~+0.2% / +0.95%</td>
+            <td>-0.5%~+0.5% / +1.40%</td>
+            <td>-0.8%~+0.5% / +1.85%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">보합 전망했으나 주요 기업 실적 서프라이즈로 장중 급반등</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">10.27 (화)</td>
+            <td>+0.3%~+0.8% / -0.45%</td>
+            <td>+0.4%~+1.0% / -0.80%</td>
+            <td>+0.5%~+1.5% / -0.95%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">외환시장 원화 약세 심화로 외인 장중 순매도 전환 오판</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">10.26 (월)</td>
+            <td>+0.5%~+1.1% / +0.82%</td>
+            <td>+0.6%~+1.4% / +0.95%</td>
+            <td>+1.2%~+2.2% / +1.75%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">뉴욕 증시 강세 연동 및 기관 저가 매수 유입 적중</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">10.23 (금)</td>
+            <td>+0.4%~+1.0% / +0.15%</td>
+            <td>+0.5%~+1.2% / -0.25%</td>
+            <td>+0.8%~+1.8% / +0.40%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">저가 매수 유입 예상했으나 주말 앞둔 리스크 회피 매물 출회</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">10.22 (목)</td>
+            <td>-0.6%~-1.2% / -1.05%</td>
+            <td>-0.8%~-1.5% / -1.35%</td>
+            <td>-1.2%~-2.2% / -1.90%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 국채 금리 재반등 및 외인 현물 매도 공세 하방 적중</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">10.21 (수)</td>
+            <td>-0.2%~+0.4% / -0.75%</td>
+            <td>-0.5%~+0.3% / -1.20%</td>
+            <td>-0.5%~+0.8% / -1.45%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 빅테크 실적 관망세에 따른 차익 실현 매물 출회 오판</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">10.20 (화)</td>
+            <td>+0.2%~+0.7% / +0.45%</td>
+            <td>+0.3%~+0.9% / +0.60%</td>
+            <td>+0.5%~+1.5% / +0.80%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">호실적 기대감 유지 속 상승 밴드 내 안착 적중</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">10.19 (월)</td>
+            <td>+0.6%~+1.2% / +0.95%</td>
+            <td>+0.8%~+1.5% / +1.15%</td>
+            <td>+1.5%~+2.5% / +2.05%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">주말 실적 기대감 및 반도체 업종 저가 매수세 유입 적중</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">10.16 (금)</td>
+            <td>+0.3%~+0.8% / +0.12%</td>
+            <td>+0.2%~+0.7% / -0.40%</td>
+            <td>+0.5%~+1.5% / +0.20%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">삼성전자 외인 추가 매도세로 상승 전환 실패 및 보합세 하회</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">10.15 (목)</td>
+            <td>-0.5%~-1.2% / -0.92%</td>
+            <td>-0.8%~-1.5% / -1.05%</td>
+            <td>-1.5%~-2.5% / -2.10%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">금리 상승 여파와 기술주 조정 지속 하방 밴드 적중</td>
+          </tr>
+          <tr data-res="❌">
+            <td style="font-weight:700; white-space:nowrap;">10.14 (수)</td>
+            <td>+0.5%~+1.0% / -0.85%</td>
+            <td>+0.8%~+1.5% / -1.10%</td>
+            <td>+1.2%~+2.2% / -1.65%</td>
+            <td style="text-align:center;" class="eval-circle">❌</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">미 국채 10년물 금리 급등에 따른 외인 대량 매도 전환 오판</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">10.13 (화)</td>
+            <td>-0.3%~+0.3% / -0.21%</td>
+            <td>-0.5%~+0.5% / -0.15%</td>
+            <td>-1.0%~+1.0% / +0.30%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">금리 부담에 따른 보합권 박스권 등락 밴드 내 마감 적중</td>
+          </tr>
+          <tr data-res="⭕">
+            <td style="font-weight:700; white-space:nowrap;">10.12 (월)</td>
+            <td>+0.4%~+0.9% / +0.68%</td>
+            <td>+0.5%~+1.2% / +0.85%</td>
+            <td>+1.0%~+2.0% / +1.42%</td>
+            <td style="text-align:center;" class="eval-circle">⭕</td>
+            <td style="color:#94a3b8; font-size:0.82rem;">주말 미 증시 반등 훈풍 및 반도체 투톱 동반 상승 적중</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="auditPager" style="display:flex; justify-content:center; align-items:center; gap:8px; padding-top:4px; font-size:0.75rem; color:var(--text-muted);"></div>
+    </div>
+  </div>
+
+  <script>
+    function openStockModal(name, price, desc, link) {
+      document.getElementById('modalStockName').textContent = name;
+      document.getElementById('modalStockPrice').textContent = price;
+      document.getElementById('modalStockDesc').textContent = desc;
+      const linkEl = document.getElementById('modalStockLink');
+      if (link) {
+        linkEl.href = link;
+        linkEl.style.display = 'inline-block';
+      } else {
+        linkEl.style.display = 'none';
+      }
+      document.getElementById('stockModal').classList.add('open');
+    }
+    function closeStockModal() {
+      document.getElementById('stockModal').classList.remove('open');
+    }
+    function openRawDataModal() {
+      document.getElementById('rawDataModal').classList.add('open');
+    }
+    function closeRawDataModal() {
+      document.getElementById('rawDataModal').classList.remove('open');
+    }
+    function showChartTip(el, text) {
+      const container = el.closest('div');
+      const tipBar = container.querySelector('.chart-tip-bar');
+      if (tipBar) {
+        tipBar.textContent = text;
+        tipBar.style.color = '#fbbf24';
+      }
+      const svg = el.closest('svg');
+      if (svg) {
+        svg.querySelectorAll('.hl-col').forEach(r => r.setAttribute('fill', 'transparent'));
+        const hl = el.querySelector('.hl-col');
+        if (hl) hl.setAttribute('fill', 'rgba(251, 191, 36, 0.16)');
+      }
+    }
+    function showDonutTip(text, idx) {
+      const bar = document.getElementById('donutTipBar');
+      if (bar) {
+        bar.textContent = text;
+        bar.style.display = 'block';
+      }
+      if (idx) {
+        const card = document.getElementById('ind-' + idx);
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          card.style.boxShadow = '0 0 0 2px #fbbf24';
+          setTimeout(() => { card.style.boxShadow = 'none'; }, 1600);
+        }
+      }
+    }
+    function filterStocks(dir) {
+      document.querySelectorAll('#stocksGrid .stock-card').forEach(el => {
+        if (dir === 'all' || el.dataset.dir === dir) {
+          el.style.display = '';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    }
+    let auditResFilter = 'all';
+    let auditPage = 1;
+    function filterAuditRows(res) {
+      auditResFilter = res;
+      applyAuditFilters(1);
+    }
+    function applyAuditFilters(page) {
+      if (page) auditPage = page;
+      const q = (document.getElementById('auditSearch')?.value || '').trim().toLowerCase();
+      const size = parseInt(document.getElementById('auditPageSize')?.value || '25', 10);
+      const rows = Array.from(document.querySelectorAll('#auditTableBody tr'));
+      const matched = rows.filter(tr => {
+        const rowRes = tr.dataset.res || (tr.querySelector('.eval-circle')?.textContent || '').trim();
+        const resOk = auditResFilter === 'all' || rowRes === auditResFilter;
+        const textOk = !q || tr.textContent.toLowerCase().includes(q);
+        return resOk && textOk;
+      });
+      const totalPages = Math.max(1, Math.ceil(matched.length / size));
+      if (auditPage > totalPages) auditPage = totalPages;
+      const start = (auditPage - 1) * size;
+      const end = start + size;
+      rows.forEach(tr => tr.style.display = 'none');
+      matched.slice(start, end).forEach(tr => tr.style.display = '');
+      const cnt = document.getElementById('auditCount');
+      if (cnt) cnt.textContent = `${matched.length}건`;
+      const pager = document.getElementById('auditPager');
+      if (pager) {
+        pager.innerHTML = totalPages > 1
+          ? `<button class="btn-rawdata" style="padding:2px 8px; font-size:0.72rem;" ${auditPage<=1?'disabled':''} onclick="applyAuditFilters(${auditPage-1})">◀</button><span>${auditPage} / ${totalPages}</span><button class="btn-rawdata" style="padding:2px 8px; font-size:0.72rem;" ${auditPage>=totalPages?'disabled':''} onclick="applyAuditFilters(${auditPage+1})">▶</button>`
+          : '';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => applyAuditFilters(1));
+  </script>
+</body>
+</html>
