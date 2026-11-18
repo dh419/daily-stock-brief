@@ -224,7 +224,7 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         tooltip_txt = f"{full_date} | 예측: {pred_str} / 실제: {act_str} ({res_txt})"
         safe_tip = tooltip_txt.replace("'", "\\'")
 
-        bars_html.append(f'<g style="cursor:pointer;" onclick="showChartTip(this, '{safe_tip}')">')
+        bars_html.append(f'<g style="cursor:pointer;" onclick="showChartTip(this, \'{safe_tip}\')">')
         bars_html.append(f'<title>{tooltip_txt}</title>')
         bars_html.append(f'<rect class="hl-col" x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" rx="3" />')
 
