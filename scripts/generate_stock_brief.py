@@ -152,20 +152,19 @@ def render_band_meter(t, session, is_holiday=False):
 def render_quant_section_chart(history, field_key, title, color_accent):
     """
     Renders a quantitative SVG range-bar + actual-dot chart for a single asset (kospi / samsung / skhynix).
-    Shows full 1 month (up to 30 trading days) with compact bar spacing, sparse X-axis labels, and interactive hover/click tooltip.
+    Uses recent 20 trading days, taller vertical plot area, MM/DD labels, and horizontal scroll wrapper for readability.
     """
-    items = history[-30:]
+    items = history[-20:]
     if not items:
         return ""
 
     svg_w = 880
-    svg_h = 155
-    pad_l, pad_r = 44, 16
-    pad_t, pad_b = 22, 24
+    svg_h = 210
+    pad_l, pad_r = 48, 20
+    pad_t, pad_b = 20, 30
     plot_w = svg_w - pad_l - pad_r
     plot_h = svg_h - pad_t - pad_b
 
-    # Determine dynamic Y scale covering all data (at least -4% to +4%)
     min_y, max_y = -4.0, 4.0
     parsed_pts = []
     for h in items:
@@ -175,12 +174,14 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         act_str = parts[1].strip() if len(parts) > 1 else ''
         p_low, p_high = extract_range_from_str(pred_str)
         act_val = extract_single_pct(act_str)
-        
+
         for v in (p_low, p_high, act_val):
             if v is not None:
                 min_y = min(min_y, v - 0.8)
                 max_y = max(max_y, v + 0.8)
-        parsed_pts.append((h.get('date', '').split(' ')[0], p_low, p_high, act_val, h.get('date', ''), pred_str, act_str))
+        raw_date = h.get('date', '').split(' ')[0]
+        short_date = raw_date[5:].replace('-', '/') if len(raw_date) >= 10 else raw_date
+        parsed_pts.append((short_date, p_low, p_high, act_val, h.get('date', ''), pred_str, act_str))
 
     min_y = max(-11.5, min_y)
     max_y = min(8.5, max_y)
@@ -192,18 +193,18 @@ def render_quant_section_chart(history, field_key, title, color_accent):
 
     step_x = plot_w / max(1, len(parsed_pts))
 
-    # Grid lines (-5%, 0%, +5%)
     grid_html = []
-    for gv in [-5.0, 0.0, 5.0]:
+    for gv in [-5.0, -2.5, 0.0, 2.5, 5.0]:
         if min_y <= gv <= max_y:
             gy = y_pos(gv)
-            stroke = "#94a3b8" if gv == 0.0 else "#1e293b"
-            width = "1.5" if gv == 0.0 else "1"
-            dash = "" if gv == 0.0 else 'stroke-dasharray="3 3"'
-            label = "0.0%" if gv == 0.0 else f"{gv:+.0f}%"
-            lbl_col = "#f8fafc" if gv == 0.0 else "#64748b"
+            is_zero = (gv == 0.0)
+            stroke = "#94a3b8" if is_zero else "#1e293b"
+            width = "1.6" if is_zero else "1"
+            dash = "" if is_zero else 'stroke-dasharray="3 3"'
+            label = "0.0%" if is_zero else (f"{gv:+.1f}%" if gv % 1 else f"{gv:+.0f}%")
+            lbl_col = "#f8fafc" if is_zero else "#64748b"
             grid_html.append(f'<line x1="{pad_l}" y1="{gy:.1f}" x2="{svg_w - pad_r}" y2="{gy:.1f}" stroke="{stroke}" stroke-width="{width}" {dash} />')
-            grid_html.append(f'<text x="{pad_l - 6}" y="{gy + 3:.1f}" text-anchor="end" font-size="10" fill="{lbl_col}" font-family="monospace" font-weight="bold">{label}</text>')
+            grid_html.append(f'<text x="{pad_l - 7}" y="{gy + 4:.1f}" text-anchor="end" font-size="11" fill="{lbl_col}" font-family="monospace" font-weight="bold">{label}</text>')
 
     bars_html = []
     trend_pts = []
@@ -213,51 +214,52 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         if act_val is not None:
             ay = y_pos(act_val)
             trend_pts.append(f"{cx:.1f},{ay:.1f}")
-        
-        is_hit = (act_val is not None and p_low is not None and p_high is not None and p_low <= act_val <= p_high)
+
+        pred_dir = infer_target_direction({}, p_low, p_high)
+        in_range = (act_val is not None and p_low is not None and p_high is not None and p_low <= act_val <= p_high)
+        dir_ok = not ((pred_dir == 'up' and act_val is not None and act_val < 0) or (pred_dir == 'down' and act_val is not None and act_val > 0))
+        is_hit = in_range and dir_ok
         dot_col = "#10b981" if is_hit else "#ef4444"
-        tooltip_txt = f"{full_date} | 예측: {pred_str} / 실제: {act_str} ({'⭕ 적중' if is_hit else '❌ 이탈'})"
+        res_txt = '⭕ 적중' if is_hit else ('❌ 방향이탈' if (in_range and not dir_ok) else '❌ 이탈')
+        tooltip_txt = f"{full_date} | 예측: {pred_str} / 실제: {act_str} ({res_txt})"
         safe_tip = tooltip_txt.replace("'", "\\'")
 
-        # Group with interactive click/hover
-        bars_html.append(f'<g style="cursor:pointer;" onclick="showChartTip(this, \'{safe_tip}\')">')
+        bars_html.append(f'<g style="cursor:pointer;" onclick="showChartTip(this, '{safe_tip}')">')
         bars_html.append(f'<title>{tooltip_txt}</title>')
-        # Invisible hit area with highlight class for interactive touch
-        bars_html.append(f'<rect class="hl-col" x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" rx="2" />')
-        
-        # Draw Predicted Band Bar (compact width: 10px for 1 month)
+        bars_html.append(f'<rect class="hl-col" x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" rx="3" />')
+
         if p_low is not None and p_high is not None:
             y_top = y_pos(p_high)
             y_bot = y_pos(p_low)
-            bar_h = max(3.0, y_bot - y_top)
-            bars_html.append(f'<rect x="{cx - 5:.1f}" y="{y_top:.1f}" width="10" height="{bar_h:.1f}" rx="2" fill="{color_accent}" opacity="0.38" stroke="{color_accent}" stroke-width="1" />')
+            bar_h = max(4.0, y_bot - y_top)
+            bars_html.append(f'<rect x="{cx - 8:.1f}" y="{y_top:.1f}" width="16" height="{bar_h:.1f}" rx="3" fill="{color_accent}" opacity="0.42" stroke="{color_accent}" stroke-width="1.3" />')
 
-        # Draw Actual Close Dot
         if act_val is not None:
             ay = y_pos(act_val)
-            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="3.8" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.2" />')
+            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="5.0" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.6" />')
 
-        # Sparse X-axis date labels (every 5th item + first & last)
-        if idx == 0 or idx == total_pts - 1 or idx % 5 == 0:
-            bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 6}" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="monospace">{d_lbl}</text>')
-        
+        if idx == 0 or idx == total_pts - 1 or idx % 3 == 0:
+            bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 8}" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">{d_lbl}</text>')
+
         bars_html.append('</g>')
 
     trend_line_html = ""
     if len(trend_pts) > 1:
-        trend_line_html = f'<polyline fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5" points="{" ".join(trend_pts)}" />'
+        trend_line_html = f'<polyline fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2" points="{" ".join(trend_pts)}" />'
 
     return f"""
-      <div style="margin-bottom:14px; background:{color_accent}22; border:1px solid {color_accent}; border-radius:12px; padding:10px 14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <span style="font-size:0.9rem; font-weight:800; color:#ffffff;">{title}</span>
-          <span class="chart-tip-bar" style="font-size:0.74rem; color:#e2e8f0; font-weight:600;"></span>
+      <div style="margin-bottom:16px; background:{color_accent}22; border:1px solid {color_accent}; border-radius:12px; padding:12px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:0.95rem; font-weight:800; color:#ffffff;">{title} <span style="font-size:0.74rem; font-weight:500; color:#94a3b8;">(최근 20거래일)</span></span>
+          <span class="chart-tip-bar" style="font-size:0.78rem; color:#e2e8f0; font-weight:600;"></span>
         </div>
-        <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
-          {''.join(grid_html)}
-          {trend_line_html}
-          {''.join(bars_html)}
-        </svg>
+        <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+          <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; min-width:680px; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
+            {''.join(grid_html)}
+            {trend_line_html}
+            {''.join(bars_html)}
+          </svg>
+        </div>
       </div>
     """
 
