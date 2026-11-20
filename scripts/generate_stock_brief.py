@@ -43,21 +43,6 @@ def extract_single_pct(s):
         return float(m.group(1))
     return None
 
-def infer_target_direction(t, low_v, high_v):
-    """Determine directional stance ('up', 'down', 'neutral') from explicit field or band midpoint."""
-    d = str(t.get('direction', '')).strip().lower()
-    if d in ('up', 'bull', '상승'):
-        return 'up'
-    if d in ('down', 'bear', '하락'):
-        return 'down'
-    if low_v is not None and high_v is not None:
-        mid = (low_v + high_v) / 2.0
-        if mid >= 0.25:
-            return 'up'
-        if mid <= -0.25:
-            return 'down'
-    return 'neutral'
-
 def render_band_meter(t, session, is_holiday=False):
     """
     Renders the horizontal target band meter with a fixed 0.0% center line.
@@ -107,14 +92,8 @@ def render_band_meter(t, session, is_holiday=False):
     is_hit = False
     if actual_v is not None:
         p_act = to_pct_pos(actual_v)
-        pred_dir = infer_target_direction(t, low_v, high_v)
-        in_range = (low_v is not None and high_v is not None and (low_v <= actual_v <= high_v))
-        dir_ok = True
-        if pred_dir == 'up' and actual_v < 0:
-            dir_ok = False
-        elif pred_dir == 'down' and actual_v > 0:
-            dir_ok = False
-        is_hit = in_range and dir_ok
+        if low_v is not None and high_v is not None and (low_v <= actual_v <= high_v):
+            is_hit = True
         pin_class = "hit" if is_hit else "miss"
         actual_html = f'<div class="meter-actual-pin {pin_class}" style="left:{p_act:.1f}%;" title="실제: {actual_v:+.2f}%"></div>'
 
@@ -126,8 +105,7 @@ def render_band_meter(t, session, is_holiday=False):
         if is_holiday:
             right_legend = f'<span style="color:#94a3b8; font-weight:700;">휴장 ({actual_v:+.2f}% 직전 기준)</span>' if actual_v is not None else '<span style="color:#94a3b8; font-weight:700;">휴장</span>'
         else:
-            miss_tag = "❌ 방향이탈" if (in_range and not dir_ok) else ("⭕" if is_hit else "❌")
-            right_legend = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({miss_tag})</span>' if actual_v is not None else ''
+            right_legend = f'<span style="color:{"#10b981" if is_hit else "#f87171"}; font-weight:800;">실제: {actual_v:+.2f}% ({"⭕" if is_hit else "❌"})</span>' if actual_v is not None else ''
 
     return f"""
       <div class="band-meter-wrap">
@@ -152,19 +130,20 @@ def render_band_meter(t, session, is_holiday=False):
 def render_quant_section_chart(history, field_key, title, color_accent):
     """
     Renders a quantitative SVG range-bar + actual-dot chart for a single asset (kospi / samsung / skhynix).
-    Uses recent 20 trading days, taller vertical plot area, MM/DD labels, and horizontal scroll wrapper for readability.
+    Shows full 1 month (up to 30 trading days) with compact bar spacing, sparse X-axis labels, and interactive hover/click tooltip.
     """
-    items = history[-20:]
+    items = history[-30:]
     if not items:
         return ""
 
     svg_w = 880
-    svg_h = 210
-    pad_l, pad_r = 48, 20
-    pad_t, pad_b = 20, 30
+    svg_h = 155
+    pad_l, pad_r = 44, 16
+    pad_t, pad_b = 22, 24
     plot_w = svg_w - pad_l - pad_r
     plot_h = svg_h - pad_t - pad_b
 
+    # Determine dynamic Y scale covering all data (at least -4% to +4%)
     min_y, max_y = -4.0, 4.0
     parsed_pts = []
     for h in items:
@@ -174,14 +153,12 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         act_str = parts[1].strip() if len(parts) > 1 else ''
         p_low, p_high = extract_range_from_str(pred_str)
         act_val = extract_single_pct(act_str)
-
+        
         for v in (p_low, p_high, act_val):
             if v is not None:
                 min_y = min(min_y, v - 0.8)
                 max_y = max(max_y, v + 0.8)
-        raw_date = h.get('date', '').split(' ')[0]
-        short_date = raw_date[5:].replace('-', '/') if len(raw_date) >= 10 else raw_date
-        parsed_pts.append((short_date, p_low, p_high, act_val, h.get('date', ''), pred_str, act_str))
+        parsed_pts.append((h.get('date', '').split(' ')[0], p_low, p_high, act_val, h.get('date', ''), pred_str, act_str))
 
     min_y = max(-11.5, min_y)
     max_y = min(8.5, max_y)
@@ -193,18 +170,18 @@ def render_quant_section_chart(history, field_key, title, color_accent):
 
     step_x = plot_w / max(1, len(parsed_pts))
 
+    # Grid lines (-5%, 0%, +5%)
     grid_html = []
-    for gv in [-5.0, -2.5, 0.0, 2.5, 5.0]:
+    for gv in [-5.0, 0.0, 5.0]:
         if min_y <= gv <= max_y:
             gy = y_pos(gv)
-            is_zero = (gv == 0.0)
-            stroke = "#94a3b8" if is_zero else "#1e293b"
-            width = "1.6" if is_zero else "1"
-            dash = "" if is_zero else 'stroke-dasharray="3 3"'
-            label = "0.0%" if is_zero else (f"{gv:+.1f}%" if gv % 1 else f"{gv:+.0f}%")
-            lbl_col = "#f8fafc" if is_zero else "#64748b"
+            stroke = "#94a3b8" if gv == 0.0 else "#1e293b"
+            width = "1.5" if gv == 0.0 else "1"
+            dash = "" if gv == 0.0 else 'stroke-dasharray="3 3"'
+            label = "0.0%" if gv == 0.0 else f"{gv:+.0f}%"
+            lbl_col = "#f8fafc" if gv == 0.0 else "#64748b"
             grid_html.append(f'<line x1="{pad_l}" y1="{gy:.1f}" x2="{svg_w - pad_r}" y2="{gy:.1f}" stroke="{stroke}" stroke-width="{width}" {dash} />')
-            grid_html.append(f'<text x="{pad_l - 7}" y="{gy + 4:.1f}" text-anchor="end" font-size="11" fill="{lbl_col}" font-family="monospace" font-weight="bold">{label}</text>')
+            grid_html.append(f'<text x="{pad_l - 6}" y="{gy + 3:.1f}" text-anchor="end" font-size="10" fill="{lbl_col}" font-family="monospace" font-weight="bold">{label}</text>')
 
     bars_html = []
     trend_pts = []
@@ -214,52 +191,51 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         if act_val is not None:
             ay = y_pos(act_val)
             trend_pts.append(f"{cx:.1f},{ay:.1f}")
-
-        pred_dir = infer_target_direction({}, p_low, p_high)
-        in_range = (act_val is not None and p_low is not None and p_high is not None and p_low <= act_val <= p_high)
-        dir_ok = not ((pred_dir == 'up' and act_val is not None and act_val < 0) or (pred_dir == 'down' and act_val is not None and act_val > 0))
-        is_hit = in_range and dir_ok
+        
+        is_hit = (act_val is not None and p_low is not None and p_high is not None and p_low <= act_val <= p_high)
         dot_col = "#10b981" if is_hit else "#ef4444"
-        res_txt = '⭕ 적중' if is_hit else ('❌ 방향이탈' if (in_range and not dir_ok) else '❌ 이탈')
-        tooltip_txt = f"{full_date} | 예측: {pred_str} / 실제: {act_str} ({res_txt})"
+        tooltip_txt = f"{full_date} | 예측: {pred_str} / 실제: {act_str} ({'⭕ 적중' if is_hit else '❌ 이탈'})"
         safe_tip = tooltip_txt.replace("'", "\\'")
 
+        # Group with interactive click/hover
         bars_html.append(f'<g style="cursor:pointer;" onclick="showChartTip(this, \'{safe_tip}\')">')
         bars_html.append(f'<title>{tooltip_txt}</title>')
-        bars_html.append(f'<rect class="hl-col" x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" rx="3" />')
-
+        # Invisible hit area with highlight class for interactive touch
+        bars_html.append(f'<rect class="hl-col" x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" rx="2" />')
+        
+        # Draw Predicted Band Bar (compact width: 10px for 1 month)
         if p_low is not None and p_high is not None:
             y_top = y_pos(p_high)
             y_bot = y_pos(p_low)
-            bar_h = max(4.0, y_bot - y_top)
-            bars_html.append(f'<rect x="{cx - 8:.1f}" y="{y_top:.1f}" width="16" height="{bar_h:.1f}" rx="3" fill="{color_accent}" opacity="0.42" stroke="{color_accent}" stroke-width="1.3" />')
+            bar_h = max(3.0, y_bot - y_top)
+            bars_html.append(f'<rect x="{cx - 5:.1f}" y="{y_top:.1f}" width="10" height="{bar_h:.1f}" rx="2" fill="{color_accent}" opacity="0.38" stroke="{color_accent}" stroke-width="1" />')
 
+        # Draw Actual Close Dot
         if act_val is not None:
             ay = y_pos(act_val)
-            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="5.0" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.6" />')
+            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="3.8" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.2" />')
 
-        if idx == 0 or idx == total_pts - 1 or idx % 3 == 0:
-            bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 8}" text-anchor="middle" font-size="11" fill="#cbd5e1" font-family="monospace">{d_lbl}</text>')
-
+        # Sparse X-axis date labels (every 5th item + first & last)
+        if idx == 0 or idx == total_pts - 1 or idx % 5 == 0:
+            bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 6}" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="monospace">{d_lbl}</text>')
+        
         bars_html.append('</g>')
 
     trend_line_html = ""
     if len(trend_pts) > 1:
-        trend_line_html = f'<polyline fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="2" points="{" ".join(trend_pts)}" />'
+        trend_line_html = f'<polyline fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5" points="{" ".join(trend_pts)}" />'
 
     return f"""
-      <div style="margin-bottom:16px; background:{color_accent}22; border:1px solid {color_accent}; border-radius:12px; padding:12px 14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:8px; flex-wrap:wrap;">
-          <span style="font-size:0.95rem; font-weight:800; color:#ffffff;">{title} <span style="font-size:0.74rem; font-weight:500; color:#94a3b8;">(최근 20거래일)</span></span>
-          <span class="chart-tip-bar" style="font-size:0.78rem; color:#e2e8f0; font-weight:600;"></span>
+      <div style="margin-bottom:14px; background:{color_accent}22; border:1px solid {color_accent}; border-radius:12px; padding:10px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:0.9rem; font-weight:800; color:#ffffff;">{title}</span>
+          <span class="chart-tip-bar" style="font-size:0.74rem; color:#e2e8f0; font-weight:600;"></span>
         </div>
-        <div style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
-          <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; min-width:680px; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
-            {''.join(grid_html)}
-            {trend_line_html}
-            {''.join(bars_html)}
-          </svg>
-        </div>
+        <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
+          {''.join(grid_html)}
+          {trend_line_html}
+          {''.join(bars_html)}
+        </svg>
       </div>
     """
 
@@ -299,15 +275,6 @@ def render_html(data, session, now_kst):
     for t in data.get('targets', []):
         is_holiday = (data.get('todayAudit', {}).get('result') == '휴장' or '(휴장)' in data.get('reportTitle', ''))
         meter_html = render_band_meter(t, session, is_holiday=is_holiday)
-        _rng_str = t.get('band', '') if session == 'morning' else t.get('gap', '')
-        _lv, _hv = extract_range_from_str(_rng_str)
-        _pdir = infer_target_direction(t, _lv, _hv)
-        if _pdir == 'up':
-            dir_badge = '<span style="background:#059669; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">▲ 상승 예측</span>'
-        elif _pdir == 'down':
-            dir_badge = '<span style="background:#e11d48; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">▼ 하락 예측</span>'
-        else:
-            dir_badge = '<span style="background:#475569; color:#ffffff; padding:2px 8px; border-radius:999px; font-size:0.74rem; font-weight:700; white-space:nowrap;">◆ 중립/양방향</span>'
         t_col = '#10b981' # KOSPI Emerald
         if '삼성전자' in t['name'] or '005930' in t['code']:
             t_col = '#2563eb' # Samsung Blue
@@ -316,9 +283,8 @@ def render_html(data, session, now_kst):
 
         target_html += f"""
       <div class="target-card" style="background: {t_col}24; border: 1px solid {t_col};">
-        <div class="target-header" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div class="target-header">
           <div class="target-name" style="color:#ffffff;">{t['name']}<span class="target-code" style="color:#cbd5e1;">{t['code']}</span></div>
-          {dir_badge}
         </div>
         {meter_html}
         <div class="target-desc" style="color:#e2e8f0;">{t['desc']}</div>
@@ -466,7 +432,9 @@ def render_html(data, session, now_kst):
         '블룸에너지': '#10B981',     # Bloom Energy Emerald
         'BE': '#10B981',
         '웨스턴': '#005696',         # WDC Deep Blue
-        'WDC': '#005696'
+        'WDC': '#005696',
+        '앤트로픽': '#D97757',       # Anthropic Coral
+        'ANT': '#D97757'
     }
 
     stocks_html = ""
@@ -517,7 +485,7 @@ def render_html(data, session, now_kst):
     audit_html = ""
     for h in reversed(history):
         audit_html += f"""
-          <tr data-res="{h['result']}">
+          <tr>
             <td style="font-weight:700; white-space:nowrap;">{h['date']}</td>
             <td>{h['kospi']}</td>
             <td>{h['samsung']}</td>
@@ -606,7 +574,7 @@ Step 2. 최근 5거래일 변동성(ATR) 기반 동적 밴드 폭(W) 결정 [과
 
 Step 3. 종목별 베타(Beta) 차등 적용 및 최종 밴드 산출
   - 코스피(Beta 1.0), 삼성전자(Beta 1.2), SK하이닉스(Beta 1.8)의 변동성 차이를 반영해 [시초가 갭%]와 [장중 예측 밴드%]를 산출하세요.
-  - 13개 핵심 관심 종목(삼성전자, SK하이닉스, SKHY, NVDA, TSLA, GOOGL, META, AMZN, MU, PLTR, GEV, BE, WDC)의 최신 등락률과 핵심 이슈를 전수 수집하세요.
+  - 14개 핵심 관심 종목(삼성전자, SK하이닉스, SKHY, NVDA, TSLA, GOOGL, META, AMZN, MU, PLTR, GEV, BE, WDC, ANT)의 최신 등락률과 핵심 이슈를 전수 수집하세요.
 """
     else:
         session_desc = f"마감 분석 리포트 (매일 19:00 KST) - {date_str} ({weekday_ko})"
@@ -615,7 +583,7 @@ Step 3. 종목별 베타(Beta) 차등 적용 및 최종 밴드 산출
 1. 당일 마감된 국내 증시(코스피, 코스닥 종가 및 등락률), 외국인/기관 순매수 금액, 서울 외환시장 원/달러 환율 종가, 삼성전자·SK하이닉스 마감 종가, 유럽 증시 및 미국 프리마켓 동향을 실시간 검색하세요.
 2. 오늘 개장 브리핑의 코스피·삼성전자·SK하이닉스 예측 밴드와 실제 종가를 대조하여 **엄격한 이진 판정(⭕ 적중 또는 ❌ 실패, 부분적중 없음)**을 내리세요.
 3. 실패(❌) 시 오차의 주원인을 반드시 **[① 방향성 오판(상방/하방 반대)]** 또는 **[② 변동성 과소평가(방향은 맞았으나 밴드 폭 초과)]**로 분류하고, 설명력을 상실한 지표를 퇴출(Discard)한 뒤 신규 선행 지표를 편입(Replace)하여 다음 거래일 6대 지표 세트를 확정하세요.
-4. 국내외 13개 핵심 관심 종목의 최신 마감/프리마켓 동향을 전수 수집하세요.
+4. 국내외 14개 핵심 관심 종목의 최신 마감/프리마켓 동향을 전수 수집하세요.
 """
 
     prompt = f"""
