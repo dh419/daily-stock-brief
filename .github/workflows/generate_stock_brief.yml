@@ -2,12 +2,12 @@ name: Generate and Publish Daily Stock Brief
 
 on:
   schedule:
-    # 오전 월~토 07:00 ~ 08:30 KST (UTC 일~금 22:00 ~ 23:30) 10분 주기 체크 (일요일 오전 제외)
-    - cron: '*/10 22 * * 0-5'
-    - cron: '0,10,20,30 23 * * 0-5'
-    # 오후 월~금 19:00 ~ 20:30 KST (UTC 월~금 10:00 ~ 11:30) 10분 주기 체크 (주말 저녁 제외)
-    - cron: '*/10 10 * * 1-5'
-    - cron: '0,10,20,30 11 * * 1-5'
+    # 오전 매일(월~일) 07:00 ~ 08:30 KST (UTC 22:00 ~ 23:30) 10분 주기 체크
+    - cron: '*/10 22 * * *'
+    - cron: '0,10,20,30 23 * * *'
+    # 오후 매일(월~일) 19:00 ~ 20:30 KST (UTC 10:00 ~ 11:30) 10분 주기 체크
+    - cron: '*/10 10 * * *'
+    - cron: '0,10,20,30 11 * * *'
   workflow_dispatch:
     inputs:
       session:
@@ -44,10 +44,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Google Drive SDK
+      - name: Install Google Drive & Gemini SDK
         run: |
           python -m pip install --upgrade pip
-          pip install google-api-python-client google-auth
+          pip install google-api-python-client google-auth google-genai
 
       - name: Determine Session
         id: determine
@@ -66,6 +66,9 @@ jobs:
       - name: Fetch JSON from Google Drive & Render Stock Brief
         env:
           GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ inputs.model || 'gemini-4-hydrogen' }}
+          FORCE_FALLBACK: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
         run: |
           python scripts/sync_from_gdrive.py --session ${{ steps.determine.outputs.session }}
 
