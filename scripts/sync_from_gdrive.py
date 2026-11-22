@@ -19,15 +19,15 @@ KST = timezone(timedelta(hours=9))
 
 
 def should_run_fallback(session: str, now_kst: datetime) -> bool:
-    """Run Gemini API fallback if manual dispatch, past 1-hour grace window (08:00/20:00 KST), or outside wait window."""
+    """Run Gemini API fallback if manual dispatch, past 85-min grace window (08:25/20:25 KST), or outside wait window."""
     if os.environ.get('FORCE_FALLBACK') == '1':
         return True
     hm = now_kst.hour * 60 + now_kst.minute
     if session == 'morning':
-        # Wait 1 hour for Gemini App between 07:00 (420) and 08:00 (480)
-        return not (420 <= hm < 480)
-    # Wait 1 hour for Gemini App between 19:00 (1140) and 20:00 (1200)
-    return not (1140 <= hm < 1200)
+        # Wait 1h 25m for Gemini App between 07:00 (420) and 08:25 (505)
+        return not (420 <= hm < 505)
+    # Wait 1h 25m for Gemini App between 19:00 (1140) and 20:25 (1225)
+    return not (1140 <= hm < 1225)
 
 
 def run_gemini_fallback(session: str):
@@ -92,7 +92,7 @@ def main():
     if should_run_fallback(args.session, now_kst):
         run_gemini_fallback(args.session)
     else:
-        print("Within 1-hour Gemini App upload grace window; waiting before triggering fallback.")
+        print("Within 1h25m Gemini App upload grace window; waiting before triggering fallback.")
 
 
 if __name__ == '__main__':
