@@ -545,7 +545,26 @@ def get_session_prompt(session, now_kst):
             history = json.load(f)
             audit_context = f"\n[최근 누적 예측 vs 실제 이진 판정 기록 (최근 {len(history)}일)]\n" + json.dumps(history[-25:], ensure_ascii=False)
 
-    if session == 'morning':
+    if weekday_ko == '토' and session == 'morning':
+        title_suffix = '美 증시 마감 & 주간 결산'
+        session_desc = f"주말(토) 미국 증시 마감 & 주간 결산 (07:00 KST) - {date_str} ({weekday_ko})"
+        task_focus = """
+[핵심 임무: 금요일 밤 미국 본장 마감 & 한 주간 국내외 증시 결산 (국내 토요일 휴장)]
+1. 방금 마감된 금요일 밤 미국 본장(다우·S&P500·나스닥·필라델피아 반도체 SOX·미 국채 10년물·원/달러 NDF) 및 미국/글로벌 관심종목(NVDA, TSLA, GOOGL, META, AMZN, MU, PLTR, GEV, BE, WDC, ANT, SKHY) 마감 등락률과 핵심 이슈를 전수 수집하세요.
+2. 이번 주 국내 증시(코스피·삼성전자·SK하이닉스) 주간 등락·외국인/기관 주간 수급 요약 및 다음 주 월요일 시초가 핵심 관전 포인트를 정리하세요.
+3. 토요일은 국내 휴장일이므로 `todayAudit.result`는 반드시 `"휴장"`으로 기록하고, `targets`에는 직전 금요일 마감 기준 요약과 차주 전망 코멘트를 남기세요.
+"""
+    elif weekday_ko == '일' and session == 'evening':
+        title_suffix = '차주 증시 프리뷰 & 개장 전략'
+        session_desc = f"주말(일) 차주 증시 프리뷰 & 개장 전략 (19:00 KST) - {date_str} ({weekday_ko})"
+        task_focus = """
+[핵심 임무: 차주(월~금) 증시 프리뷰 & 월요일 개장 시나리오 (국내 일요일 휴장)]
+1. 다음 주 핵심 경제지표(FOMC·CPI·고용·수출입 등), 주요 기업 실적 발표 캘린더, 주말 간 발생한 글로벌 매크로·지정학·AI/반도체(엔비디아·Anthropic·삼성·하이닉스) 핵심 뉴스를 실시간 검색하세요.
+2. 월요일 아침 한국 장 개장 전 반드시 확인할 6대 선행 지표 체크포인트와 시초가 시나리오를 제시하고, 14개 핵심 관심 종목의 주간 관전 포인트를 정리하세요.
+3. 일요일은 국내 휴장일이므로 `todayAudit.result`는 반드시 `"휴장"`으로 기록하세요.
+"""
+    elif session == 'morning':
+        title_suffix = '개장 브리핑'
         session_desc = f"개장 브리핑 (매일 07:00 KST) - {date_str} ({weekday_ko})"
         task_focus = """
 [핵심 임무: 규칙 기반 퀀트 예측 (감에 의한 숫자 찍기 금지)]
@@ -577,6 +596,7 @@ Step 3. 종목별 베타(Beta) 차등 적용 및 최종 밴드 산출
   - 14개 핵심 관심 종목(삼성전자, SK하이닉스, SKHY, NVDA, TSLA, GOOGL, META, AMZN, MU, PLTR, GEV, BE, WDC, ANT)의 최신 등락률과 핵심 이슈를 전수 수집하세요.
 """
     else:
+        title_suffix = '마감 & 지표 감사'
         session_desc = f"마감 분석 리포트 (매일 19:00 KST) - {date_str} ({weekday_ko})"
         task_focus = """
 [핵심 임무: 이진 평가 감사(Audit) 및 오차 원인 정량 분류]
@@ -597,7 +617,7 @@ Step 3. 종목별 베타(Beta) 차등 적용 및 최종 밴드 산출
 
 반드시 준수할 JSON 출력 스키마:
 {{
-  "reportTitle": "{now_kst.strftime('%m.%d')}({weekday_ko}) {'개장 브리핑' if session == 'morning' else '마감 & 지표 감사'}",
+  "reportTitle": "{now_kst.strftime('%m.%d')}({weekday_ko}) {title_suffix}",
   "executiveSummary": "핵심 지수 마감/예측 요약 및 당일 핵심 관전 포인트 2줄 요약",
   "quantLogic": {{
     "regime": "적용된 체제명 (예: 변동성 경보 모드 / 매크로 이벤트 모드 / 평시 수급 모드)",
