@@ -1,5 +1,13 @@
 [
   {
+    "id": "2026-11-24-morning",
+    "date": "2026-11-24",
+    "session": "morning",
+    "title": "11.24(화) 개장 브리핑",
+    "path": "docs/2026-11/2026-11-24-morning.html",
+    "timestamp": "2026-11-24 07:30"
+  },
+  {
     "id": "2026-11-23-evening",
     "date": "2026-11-23",
     "session": "evening",
