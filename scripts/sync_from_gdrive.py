@@ -18,13 +18,13 @@ KST = timezone(timedelta(hours=9))
 
 
 def is_within_grace_window(session: str, now_kst: datetime) -> bool:
-    """Wait 1h 25m (07:00~08:25 / 19:00~20:25 KST) for Gemini App upload before failing."""
+    """Wait 1h 25m (07:00~08:25 / 20:00~21:25 KST) for Gemini App upload before failing."""
     if os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
         return False
     hm = now_kst.hour * 60 + now_kst.minute
     if session == 'morning':
         return 420 <= hm < 505
-    return 1140 <= hm < 1225
+    return 1200 <= hm < 1285
 
 
 def main():

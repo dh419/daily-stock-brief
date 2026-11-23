@@ -495,7 +495,7 @@ def render_html(data, session, now_kst):
           </tr>"""
 
     session_class = "morning" if session == 'morning' else "evening"
-    session_badge = "개장 (07:00)" if session == 'morning' else "마감 (19:00)"
+    session_badge = "개장 (07:00)" if session == 'morning' else "마감 (20:00)"
 
     html = tpl.replace('{{REPORT_TITLE}}', data.get('reportTitle', ''))
     html = html.replace('{{SESSION_CLASS}}', session_class)
@@ -556,7 +556,7 @@ def get_session_prompt(session, now_kst):
 """
     elif weekday_ko == '일' and session == 'evening':
         title_suffix = '차주 증시 프리뷰 & 개장 전략'
-        session_desc = f"주말(일) 차주 증시 프리뷰 & 개장 전략 (19:00 KST) - {date_str} ({weekday_ko})"
+        session_desc = f"주말(일) 차주 증시 프리뷰 & 개장 전략 (20:00 KST) - {date_str} ({weekday_ko})"
         task_focus = """
 [핵심 임무: 차주(월~금) 증시 프리뷰 & 월요일 개장 시나리오 (국내 일요일 휴장)]
 1. 다음 주 핵심 경제지표(FOMC·CPI·고용·수출입 등), 주요 기업 실적 발표 캘린더, 주말 간 발생한 글로벌 매크로·지정학·AI/반도체(엔비디아·Anthropic·삼성·하이닉스) 핵심 뉴스를 실시간 검색하세요.
@@ -597,7 +597,7 @@ Step 3. 종목별 베타(Beta) 차등 적용 및 최종 밴드 산출
 """
     else:
         title_suffix = '마감 & 지표 감사'
-        session_desc = f"마감 분석 리포트 (매일 19:00 KST) - {date_str} ({weekday_ko})"
+        session_desc = f"마감 분석 리포트 (매일 20:00 KST) - {date_str} ({weekday_ko})"
         task_focus = """
 [핵심 임무: 이진 평가 감사(Audit) 및 오차 원인 정량 분류]
 1. 당일 마감된 국내 증시(코스피, 코스닥 종가 및 등락률), 외국인/기관 순매수 금액, 서울 외환시장 원/달러 환율 종가, 삼성전자·SK하이닉스 마감 종가, 유럽 증시 및 미국 프리마켓 동향을 실시간 검색하세요.
@@ -632,8 +632,8 @@ Step 3. 종목별 베타(Beta) 차등 적용 및 최종 밴드 산출
     {{
       "name": "코스피 / 삼성전자 / SK하이닉스 (반드시 이 3개 순서대로)",
       "code": "KOSPI / 005930 / 000660",
-      "gap": "{'시초가 -0.4% ~ -1.0%' if session == 'morning' else '오전예측: -0.8% ~ +0.6%'}",
-      "band": "{'-0.8% ~ +0.6%' if session == 'morning' else '실제: -0.98% (❌ 실패)'}",
+      "gap": "{'시초가 -0.8% ~ -1.5%' if session == 'morning' else '오전예측: -1.8% ~ -0.6%'}",
+      "band": "{'-1.8% ~ -0.6%' if session == 'morning' else '실제: -1.35% (⭕ 적중)'}",
       "desc": "예상 지수/주가 밴드 및 지지·저항 핵심 코멘트 (2줄 이내)"
     }}
   ],
