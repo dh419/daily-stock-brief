@@ -17,9 +17,23 @@ FOLDER_ID = '1yxtjIIWVriE4u5ikOG-fh2FQY5fh853_'  # dashboard_incoming/daily-stoc
 KST = timezone(timedelta(hours=9))
 
 
-def is_within_grace_window(session: str, now_kst: datetime) -> bool:
+def resolve_target_datetime(session: str, now_kst: datetime, event_name: str) -> datetime:
+    """Resolve the brief's target KST date when a delayed cron fires after midnight."""
+    if event_name == 'schedule':
+        if session == 'evening' and now_kst.hour < 19:
+            return now_kst - timedelta(days=1)
+        if session == 'morning' and now_kst.hour < 7:
+            return now_kst - timedelta(days=1)
+    elif session == 'evening' and now_kst.hour < 12:
+        return now_kst - timedelta(days=1)
+    return now_kst
+
+
+def is_within_grace_window(session: str, now_kst: datetime, target_kst: datetime) -> bool:
     """Wait 1h 25m (07:00~08:25 / 20:00~21:25 KST) for Gemini App upload before failing."""
     if os.environ.get('GITHUB_EVENT_NAME') == 'workflow_dispatch':
+        return False
+    if target_kst.date() != now_kst.date():
         return False
     hm = now_kst.hour * 60 + now_kst.minute
     if session == 'morning':
@@ -36,12 +50,18 @@ def main():
     if not sa_json:
         raise ValueError("GDRIVE_SA_KEY environment variable is missing.")
 
+    event_name = os.environ.get('GITHUB_EVENT_NAME', '')
     now_kst = datetime.now(KST)
-    today_str = now_kst.strftime('%Y-%m-%d')
-    month_part = now_kst.strftime('%Y-%m')
-    expected_name = f"{today_str}-stock-{args.session}.json"
+    target_kst = resolve_target_datetime(args.session, now_kst, event_name)
+    target_str = target_kst.strftime('%Y-%m-%d')
+    month_part = target_kst.strftime('%Y-%m')
+    expected_name = f"{target_str}-stock-{args.session}.json"
     out_dir = os.path.join(DOCS_DIR, month_part)
-    out_file = os.path.join(out_dir, f"{today_str}-{args.session}.html")
+    out_file = os.path.join(out_dir, f"{target_str}-{args.session}.html")
+
+    if event_name != 'workflow_dispatch' and os.path.exists(out_file):
+        print(f"Brief already published at {out_file}; skipping scheduled check.")
+        return
 
     creds = service_account.Credentials.from_service_account_info(
         json.loads(sa_json),
@@ -77,7 +97,7 @@ def main():
         print(f"Brief already published today at {out_file}; skipping.")
         return
 
-    if is_within_grace_window(args.session, now_kst):
+    if is_within_grace_window(args.session, now_kst, target_kst):
         print(f"Waiting for Gemini App upload ({expected_name}) within 1h 25m grace window...")
         return
 

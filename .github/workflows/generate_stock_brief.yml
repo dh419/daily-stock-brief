@@ -51,15 +51,23 @@ jobs:
 
       - name: Determine Session
         id: determine
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_SESSION: ${{ inputs.session }}
+          SCHEDULE_CRON: ${{ github.event.schedule }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "session=${{ inputs.session }}" >> $GITHUB_OUTPUT
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "session=$INPUT_SESSION" >> "$GITHUB_OUTPUT"
+          elif [ "$SCHEDULE_CRON" = "*/10 22 * * 0-5" ] || [ "$SCHEDULE_CRON" = "0,10,20,30 23 * * 0-5" ]; then
+            echo "session=morning" >> "$GITHUB_OUTPUT"
+          elif [ "$SCHEDULE_CRON" = "*/10 11 * * 0-5" ] || [ "$SCHEDULE_CRON" = "0,10,20,30 12 * * 0-5" ]; then
+            echo "session=evening" >> "$GITHUB_OUTPUT"
           else
             KST_HOUR=$((10#$(TZ=Asia/Seoul date +%H)))
-            if [ "$KST_HOUR" -ge 6 ] && [ "$KST_HOUR" -lt 19 ]; then
-              echo "session=morning" >> $GITHUB_OUTPUT
+            if [ "$KST_HOUR" -ge 7 ] && [ "$KST_HOUR" -lt 19 ]; then
+              echo "session=morning" >> "$GITHUB_OUTPUT"
             else
-              echo "session=evening" >> $GITHUB_OUTPUT
+              echo "session=evening" >> "$GITHUB_OUTPUT"
             fi
           fi
 
