@@ -55,8 +55,8 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "session=${{ inputs.session }}" >> $GITHUB_OUTPUT
           else
-            KST_HOUR=$(TZ=Asia/Seoul date +%H | sed 's/^0//')
-            if [ "$KST_HOUR" -ge 6 ] && [ "$KST_HOUR" -lt 14 ]; then
+            KST_HOUR=$((10#$(TZ=Asia/Seoul date +%H)))
+            if [ "$KST_HOUR" -ge 6 ] && [ "$KST_HOUR" -lt 19 ]; then
               echo "session=morning" >> $GITHUB_OUTPUT
             else
               echo "session=evening" >> $GITHUB_OUTPUT
