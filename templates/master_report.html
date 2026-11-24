@@ -428,8 +428,7 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
-
-:root[data-theme="light"] {
+    :root[data-theme="light"] {
       --bg: #f8fafc !important;
       --card-bg: #ffffff !important;
       --card-border: #e2e8f0 !important;
@@ -452,11 +451,21 @@
     :root[data-theme="light"] .target-name,
     :root[data-theme="light"] .stock-name,
     :root[data-theme="light"] strong { color: #0f172a !important; }
+    :root[data-theme="light"] [style*="color:#fff"],
+    :root[data-theme="light"] [style*="color: #fff"],
+    :root[data-theme="light"] [style*="color:#ffffff"],
+    :root[data-theme="light"] [style*="color: #ffffff"],
+    :root[data-theme="light"] [style*="color:#f8fafc"],
+    :root[data-theme="light"] [style*="color: #f8fafc"] { color: #0f172a !important; }
+    :root[data-theme="light"] [style*="color:#e2e8f0"],
+    :root[data-theme="light"] [style*="color: #e2e8f0"] { color: #1e293b !important; }
+    :root[data-theme="light"] [style*="color:#cbd5e1"],
+    :root[data-theme="light"] [style*="color: #cbd5e1"] { color: #475569 !important; }
     :root[data-theme="light"] .header-summary,
     :root[data-theme="light"] .target-desc,
     :root[data-theme="light"] .stock-snippet,
     :root[data-theme="light"] .kpi-sub,
-    :root[data-theme="light"] .section-title span.sub { color: #475569 !important; }
+    :root[data-theme="light"] .section-title span.sub { color: #334155 !important; }
     :root[data-theme="light"] .header-time,
     :root[data-theme="light"] .macro-title,
     :root[data-theme="light"] .target-code,
@@ -466,14 +475,25 @@
     :root[data-theme="light"] .target-card,
     :root[data-theme="light"] .indicators-table-wrap,
     :root[data-theme="light"] .stock-card,
-    :root[data-theme="light"] .chart-box { background: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04) !important; }
+    :root[data-theme="light"] .chart-box { background-color: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04) !important; }
     :root[data-theme="light"] .target-card:hover,
-    :root[data-theme="light"] .stock-card:hover { background: #f8fafc !important; border-color: #3b82f6 !important; }
+    :root[data-theme="light"] .stock-card:hover { background-color: #f8fafc !important; border-color: #3b82f6 !important; }
     :root[data-theme="light"] .band-meter-wrap { background: #f8fafc !important; border-color: #e2e8f0 !important; }
     :root[data-theme="light"] .meter-track { background: #e2e8f0 !important; }
     :root[data-theme="light"] .axis-zero { background: #334155 !important; box-shadow: none !important; }
     :root[data-theme="light"] .axis-zero-label { background: #334155 !important; color: #ffffff !important; }
     :root[data-theme="light"] .meter-actual-pin { border-color: #0f172a !important; }
+    :root[data-theme="light"] .meter-legend span[style*="#38bdf8"] { color: #0284c7 !important; }
+    :root[data-theme="light"] .meter-legend span[style*="#c7d2fe"] { color: #4f46e5 !important; }
+    :root[data-theme="light"] div[style*="rgba(30,41,59"] { background: #f1f5f9 !important; border-color: #cbd5e1 !important; }
+    :root[data-theme="light"] span[style*="background:#4f46e5"] { color: #ffffff !important; }
+    :root[data-theme="light"] span[style*="background:#0f172a"] { background: #ffffff !important; border-color: #cbd5e1 !important; }
+    :root[data-theme="light"] span[style*="color:#38bdf8"] { color: #0369a1 !important; }
+    :root[data-theme="light"] span[style*="color:#fbbf24"] { color: #b45309 !important; }
+    :root[data-theme="light"] div[onclick^="showDonutTip"] { background: #f1f5f9 !important; }
+    :root[data-theme="light"] div[onclick^="showDonutTip"]:hover { background: #e2e8f0 !important; }
+    :root[data-theme="light"] #donutTipBar { background: #eff6ff !important; color: #1d4ed8 !important; border-color: #bfdbfe !important; }
+    :root[data-theme="light"] svg path[stroke="#0b0f19"] { stroke: #ffffff !important; }
     :root[data-theme="light"] table.data-table th { background: #f1f5f9 !important; color: #334155 !important; border-color: #e2e8f0 !important; }
     :root[data-theme="light"] table.data-table td { color: #0f172a !important; border-color: #e2e8f0 !important; }
     :root[data-theme="light"] .badge-session { border-color: #cbd5e1 !important; }
@@ -485,10 +505,19 @@
     :root[data-theme="light"] .sig-neutral { color: #475569 !important; background: #f1f5f9 !important; border-color: #cbd5e1 !important; }
     :root[data-theme="light"] .kpi-num { color: #d97706 !important; }
     :root[data-theme="light"] .btn-rawdata { background: #eff6ff !important; border-color: #3b82f6 !important; color: #1d4ed8 !important; }
+    :root[data-theme="light"] .btn-rawdata[style*="color:#f87171"] { background: #fef2f2 !important; color: #dc2626 !important; border-color: #ef4444 !important; }
+    :root[data-theme="light"] .btn-rawdata[style*="color:#60a5fa"] { background: #eff6ff !important; color: #2563eb !important; border-color: #3b82f6 !important; }
     :root[data-theme="light"] .btn-rawdata:hover { background: #2563eb !important; color: #ffffff !important; }
     :root[data-theme="light"] .modal { background: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; }
     :root[data-theme="light"] .close-btn { background: #f1f5f9 !important; color: #475569 !important; }
-    :root[data-theme="light"] .timeline-svg text { fill: #475569 !important; }
+    :root[data-theme="light"] .chart-box svg text[fill="#f8fafc"] { fill: #0f172a !important; }
+    :root[data-theme="light"] .chart-box svg text[fill="#94a3b8"],
+    :root[data-theme="light"] .chart-box svg text[fill="#64748b"] { fill: #475569 !important; }
+    :root[data-theme="light"] .chart-box svg line[stroke="#1e293b"] { stroke: #cbd5e1 !important; }
+    :root[data-theme="light"] .chart-box svg polyline[stroke="#ffffff"] { stroke: #334155 !important; stroke-opacity: 0.45 !important; }
+    :root[data-theme="light"] .chart-box svg circle[stroke="#0b0f19"] { stroke: #ffffff !important; }
+    :root[data-theme="light"] .chart-box strong[style*="color:#10b981"] { color: #059669 !important; }
+    :root[data-theme="light"] .chart-box strong[style*="color:#ef4444"] { color: #dc2626 !important; }
   </style>
 </head>
 <body>
