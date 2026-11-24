@@ -77,5 +77,5 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add docs/ hub-data.json audit_history.json
+          git add docs/ hub-data.json audit_history.json robots.txt index.html
           git diff --staged --quiet || (git commit -m "chore(stock): publish ${{ steps.determine.outputs.session }} brief [$(date +%Y-%m-%d)]" && git push)

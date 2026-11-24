@@ -533,6 +533,15 @@ def render_html(data, session, now_kst):
     html = html.replace('{{AUDIT_CHART_SVG}}', chart_svg)
     html = html.replace('{{AUDIT_ROWS_HTML}}', audit_html)
 
+    if not re.search(r'<meta\s+name=["\']robots["\']', html, re.IGNORECASE):
+        html = re.sub(
+            r'(<head[^>]*>)',
+            r'\1\n  <meta name="robots" content="noindex, nofollow" />',
+            html,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+
     return html
 
 def get_session_prompt(session, now_kst):

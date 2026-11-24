@@ -7,6 +7,37 @@ from datetime import datetime
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS_DIR = os.path.join(REPO_ROOT, 'docs')
 HUB_DATA_PATH = os.path.join(REPO_ROOT, 'hub-data.json')
+ROBOTS_TXT_PATH = os.path.join(REPO_ROOT, 'robots.txt')
+ROBOTS_META_TAG = '<meta name="robots" content="noindex, nofollow" />'
+
+
+def ensure_noindex_in_file(html_path):
+    if not os.path.exists(html_path):
+        return
+    with open(html_path, 'r', encoding='utf-8') as f:
+        text = f.read()
+    if re.search(r'<meta\s+name=["\']robots["\']', text, re.IGNORECASE):
+        return
+    updated, n = re.subn(
+        r'(<head[^>]*>)',
+        rf'\1\n  {ROBOTS_META_TAG}',
+        text,
+        count=1,
+        flags=re.IGNORECASE,
+    )
+    if n > 0:
+        with open(html_path, 'w', encoding='utf-8') as f:
+            f.write(updated)
+
+
+def ensure_search_blocking():
+    desired = "User-agent: *\nDisallow: /\n"
+    if not os.path.exists(ROBOTS_TXT_PATH):
+        with open(ROBOTS_TXT_PATH, 'w', encoding='utf-8') as f:
+            f.write(desired)
+    ensure_noindex_in_file(os.path.join(REPO_ROOT, 'index.html'))
+    for filepath in glob.glob(os.path.join(DOCS_DIR, '**', '*.html'), recursive=True):
+        ensure_noindex_in_file(filepath)
 
 def update_hub_index():
     reports = []
@@ -50,6 +81,7 @@ def update_hub_index():
         json.dump(reports, f, ensure_ascii=False, indent=2)
         
     print(f"Successfully indexed {len(reports)} reports into hub-data.json")
+    ensure_search_blocking()
 
 if __name__ == '__main__':
     update_hub_index()
