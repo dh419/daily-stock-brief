@@ -324,18 +324,68 @@
   <script>
     (function () {
       var themeBtn = document.getElementById("themeToggle");
+      var viewer = document.getElementById("viewer");
+      var SUN_SVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>';
+      var MOON_SVG = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>';
+      var LIGHT_OVERRIDE_CSS =
+        ':root[data-theme="light"] {' +
+        '  --bg: #f8fafc !important; --card-bg: #ffffff !important; --card-border: #e2e8f0 !important;' +
+        '  --card-hover: #f1f5f9 !important; --text: #0f172a !important; --text-muted: #475569 !important; --text-dim: #64748b !important;' +
+        '}' +
+        ':root[data-theme="light"] body { background: #f8fafc !important; color: #0f172a !important; }' +
+        ':root[data-theme="light"] header { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 2px 10px rgba(15,23,42,0.06) !important; }' +
+        ':root[data-theme="light"] .card, :root[data-theme="light"] .stock-card, :root[data-theme="light"] .kpi-card, :root[data-theme="light"] .panel, :root[data-theme="light"] .section-box, :root[data-theme="light"] .table-wrap {' +
+        '  background: #ffffff !important; border-color: #e2e8f0 !important; color: #0f172a !important; box-shadow: 0 1px 4px rgba(15,23,42,0.04) !important;' +
+        '}' +
+        ':root[data-theme="light"] h1, :root[data-theme="light"] h2, :root[data-theme="light"] h3, :root[data-theme="light"] strong, :root[data-theme="light"] th, :root[data-theme="light"] td {' +
+        '  color: #0f172a !important;' +
+        '}' +
+        ':root[data-theme="light"] .sub, :root[data-theme="light"] .meta, :root[data-theme="light"] .muted, :root[data-theme="light"] p {' +
+        '  color: #334155 !important;' +
+        '}' +
+        ':root[data-theme="light"] tr, :root[data-theme="light"] td, :root[data-theme="light"] th { border-color: #e2e8f0 !important; }' +
+        ':root[data-theme="light"] thead, :root[data-theme="light"] th { background: #f1f5f9 !important; }';
+
+      function getHubTheme() {
+        return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+      }
+      function syncIframeTheme() {
+        var t = getHubTheme();
+        try {
+          if (viewer && viewer.contentDocument && viewer.contentDocument.documentElement) {
+            var doc = viewer.contentDocument;
+            doc.documentElement.dataset.theme = t;
+            var styleEl = doc.getElementById("hub-light-override");
+            if (t === "light") {
+              if (!styleEl && doc.head) {
+                styleEl = doc.createElement("style");
+                styleEl.id = "hub-light-override";
+                styleEl.textContent = LIGHT_OVERRIDE_CSS;
+                doc.head.appendChild(styleEl);
+              }
+            } else if (styleEl) {
+              styleEl.remove();
+            }
+          }
+          if (viewer && viewer.contentWindow) {
+            viewer.contentWindow.postMessage({ type: "wc-theme", theme: t }, "*");
+          }
+        } catch (e) {}
+      }
       function syncThemeBtn() {
-        var cur = document.documentElement.dataset.theme || "dark";
+        var cur = getHubTheme();
         document.documentElement.dataset.theme = cur;
-        themeBtn.textContent = cur === "dark" ? "☀️" : "🌙";
+        themeBtn.innerHTML = cur === "dark" ? SUN_SVG : MOON_SVG;
         themeBtn.title = cur === "dark" ? "라이트 모드로 전환" : "다크 모드로 전환";
+        syncIframeTheme();
       }
       themeBtn.addEventListener("click", function () {
-        var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        var next = getHubTheme() === "dark" ? "light" : "dark";
         document.documentElement.dataset.theme = next;
         try { localStorage.setItem("theme", next); } catch (e) {}
         syncThemeBtn();
       });
+      viewer.addEventListener("load", syncIframeTheme);
       syncThemeBtn();
 
       var sidebar = document.getElementById("sidebar");
@@ -378,7 +428,6 @@
       var activeId = "";
       var foldedMonths = {};
       var reportList = document.getElementById("reportList");
-      var viewer = document.getElementById("viewer");
       var openNewTab = document.getElementById("openNewTab");
 
       function formatDateShort(dateStr) {
