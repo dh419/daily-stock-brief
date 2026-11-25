@@ -10,6 +10,7 @@ from googleapiclient.http import MediaIoBaseDownload
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import generate_stock_brief as gsb
+import nxt_reconcile
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOCS_DIR = os.path.join(REPO_ROOT, 'docs')
@@ -86,6 +87,13 @@ def main():
             _, done = downloader.next_chunk()
 
         data = json.loads(buf.getvalue().decode('utf-8'))
+        if args.session == 'evening':
+            nxt_reconcile.reconcile_evening_data(data, target_str)
+        elif args.session == 'morning':
+            _, prev_closes = nxt_reconcile.reconcile_previous_evening(
+                target_kst, DOCS_DIR, gsb.AUDIT_HISTORY_PATH
+            )
+            nxt_reconcile.annotate_morning_data(data, prev_closes)
         html = gsb.render_html(data, args.session, now_kst)
         os.makedirs(out_dir, exist_ok=True)
         with open(out_file, 'w', encoding='utf-8') as f:
