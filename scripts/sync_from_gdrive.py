@@ -1,4 +1,4 @@
-import os
+﻿import os
 import io
 import sys
 import json
@@ -40,6 +40,37 @@ def is_within_grace_window(session: str, now_kst: datetime, target_kst: datetime
     if session == 'morning':
         return 420 <= hm < 505
     return 1200 <= hm < 1285
+
+
+def apply_quant_engine(data, today_str):
+    """Replace LLM-made numbers with the deterministic quant engine forecast.
+    LLM narrative (desc) is kept as context; numbers come only from the model."""
+    try:
+        import quant_engine as qe
+        fc = qe.latest_forecast()
+    except Exception as e:  # never block publishing; flag it instead
+        print(f"[quant] engine failed, keeping LLM numbers: {e}")
+        data.setdefault('quantLogic', {})['regime'] = '⚠ 퀀트엔진 실패 - LLM 수치(참고용)'
+        return
+    llm_desc = {t.get('code'): t.get('desc', '') for t in data.get('targets', [])}
+    targets = qe.to_brief_targets(fc)
+    for t in targets:
+        extra = llm_desc.get(t['code'])
+        if extra:
+            t['desc'] += f" | {extra}"
+        t.pop('quant', None)
+    data['targets'] = targets
+    k = fc['kospi']
+    data['quantLogic'] = {
+        'regime': f"롤링 릿지 회귀 (250일) · 일변동성 {k['vol']:.2f}%",
+        'score': ' / '.join(f"{n} {fc[c]['call']} {fc[c]['p_up']*100:.0f}%" for c, n in
+                           [('kospi', '코스피'), ('samsung', '삼성'), ('skhynix', '하이닉스')]),
+        'bandRule': '80% 예측구간 (잔차 분포 기반 비대칭) · 콜 기준 P≥60%',
+        'rationale': '입력: ' + ', '.join(f"{a}={b:+.2f}" for a, b in k['inputs'].items()),
+    }
+    os.makedirs(os.path.join(REPO_ROOT, 'forecasts'), exist_ok=True)
+    with open(os.path.join(REPO_ROOT, 'forecasts', f'{today_str}.json'), 'w', encoding='utf-8') as f:
+        json.dump(fc, f, ensure_ascii=False, indent=2, default=float)
 
 
 def main():
@@ -90,6 +121,8 @@ def main():
         if args.session == 'evening':
             nxt_reconcile.reconcile_evening_data(data, target_str)
         elif args.session == 'morning':
+            if target_kst.weekday() < 5:
+                apply_quant_engine(data, target_str)
             _, prev_closes = nxt_reconcile.reconcile_previous_evening(
                 target_kst, DOCS_DIR, gsb.AUDIT_HISTORY_PATH
             )

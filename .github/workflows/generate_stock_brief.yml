@@ -1,4 +1,4 @@
-name: Generate and Publish Daily Stock Brief
+﻿name: Generate and Publish Daily Stock Brief
 
 on:
   schedule:
@@ -47,7 +47,7 @@ jobs:
       - name: Install Google Drive SDK
         run: |
           python -m pip install --upgrade pip
-          pip install google-api-python-client google-auth
+          pip install google-api-python-client google-auth yfinance pandas numpy
 
       - name: Determine Session
         id: determine
@@ -86,4 +86,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add docs/ hub-data.json audit_history.json robots.txt index.html
+          [ -d forecasts ] && git add forecasts/ || true
           git diff --staged --quiet || (git commit -m "chore(stock): publish ${{ steps.determine.outputs.session }} brief [$(date +%Y-%m-%d)]" && git push)
