@@ -1,4 +1,4 @@
-﻿name: Generate and Publish Daily Stock Brief
+name: Generate and Publish Daily Stock Brief
 
 on:
   schedule:

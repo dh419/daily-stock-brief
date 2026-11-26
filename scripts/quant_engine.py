@@ -1,4 +1,4 @@
-﻿"""
+"""
 Zero-base quant engine for the morning brief (deterministic, no LLM numbers).
 
 Idea
