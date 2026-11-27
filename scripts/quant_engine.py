@@ -33,11 +33,53 @@ WINDOW = 250          # rolling training days
 LAMBDA = 2.0          # ridge strength (on standardised features)
 Q_LO, Q_HI = 0.10, 0.90
 CALL_PROB = 0.60      # minimum p_up / p_down to issue a directional call
+import os
+_FLOWS = None
+USE_FLOWS = os.environ.get('QE_FLOWS', '1') == '1'
 
 
 def _dl(tickers, period):
     df = yf.download(list(tickers), period=period, auto_adjust=True, progress=False, group_by='ticker')
     return df
+
+
+NAVER_H = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130'}
+
+
+def fetch_flows(code, years=4):
+    """Daily foreign/institution net buy (shares) from Naver mobile API, paging by bizdate."""
+    import requests
+    out, bizdate = [], None
+    stop = (pd.Timestamp.now() - pd.DateOffset(years=years)).strftime('%Y%m%d')
+    for _ in range(40):
+        q = f'pageSize=60' + (f'&bizdate={bizdate}' if bizdate else '')
+        j = requests.get(f'https://m.stock.naver.com/api/stock/{code}/trend?{q}', headers=NAVER_H, timeout=10).json()
+        if not j:
+            break
+        out += j
+        last = j[-1]['bizdate']
+        if last <= stop or last == bizdate:
+            break
+        bizdate = last
+    num = lambda v: float(str(v).replace(',', '').replace('+', '') or 0)
+    df = pd.DataFrame([{'date': pd.Timestamp(r['bizdate']), 'frg': num(r['foreignerPureBuyQuant']),
+                        'org': num(r['organPureBuyQuant']), 'vol': num(r['accumulatedTradingVolume']),
+                        'close': num(r['closePrice'])} for r in out])
+    df = df.drop_duplicates('date').set_index('date').sort_index()
+    adv = df['vol'].rolling(20, min_periods=5).mean()
+    return pd.DataFrame({'frg': df['frg'] / adv, 'org': df['org'] / adv,
+                         'frg_val': df['frg'] * df['close'], 'adv_val': adv * df['close']})
+
+
+def flow_features():
+    """Per-target flow series indexed by the day the flow happened (known that evening)."""
+    s, h = fetch_flows('005930'), fetch_flows('000660')
+    mkt = (s['frg_val'].add(h['frg_val'], fill_value=0)) / (s['adv_val'].add(h['adv_val'], fill_value=0))
+    res = {'samsung': s[['frg', 'org']], 'skhynix': h[['frg', 'org']]}
+    res['kospi'] = pd.DataFrame({'frg': mkt, 'org': (s['org'] + h['org']) / 2})
+    for k, v in res.items():
+        v = v.copy(); v['frg3'] = v['frg'].rolling(3).sum(); res[k] = v
+    return res
 
 
 def build_dataset(period='4y'):
@@ -59,6 +101,12 @@ def build_dataset(period='4y'):
         d['prev_ret'] = d['ret'].shift(1)
         frames[name] = d
     kospi_prev = frames['kospi']['ret']
+    try:
+        flows = flow_features() if USE_FLOWS else None
+    except Exception as e:
+        print(f'[quant] flow fetch failed: {e}'); flows = None
+    global _FLOWS
+    _FLOWS = flows
 
     rows = {}
     for name, d in frames.items():
@@ -79,6 +127,9 @@ def build_dataset(period='4y'):
         f['krw'] = U['krw']          # +: won weaker (risk-off)
         f['vix'] = U['vix']
         f['own_prev'] = d['prev_ret']  # mean reversion / momentum
+        if flows is not None:
+            fl = flows[name].reindex(d.index).shift(1)   # yesterday's flow, known before open
+            f['frg'] = fl['frg']; f['frg3'] = fl['frg3']; f['org'] = fl['org']
         vol = d['ret'].ewm(span=20).std().shift(1)
         rows[name] = (f, d[['gap', 'ret']], vol, U['vix_lvl'])
     return rows
@@ -189,6 +240,9 @@ def latest_forecast(period='4y'):
         own_last = y['ret'].dropna().iloc[-1]
         x = pd.Series({'ewy_surprise': 0.0 if ewy_closed else last['ewy'] - kospi_last, 'sox': last['sox'], 'mu': last['mu'],
                        'nvda': last['nvda'], 'krw': last['krw'], 'vix': last['vix'], 'own_prev': own_last})
+        if _FLOWS is not None:
+            lf = _FLOWS[name].dropna().iloc[-1]
+            x['frg'], x['frg3'], x['org'] = lf['frg'], lf['frg3'], lf['org']
         ret_full = y['ret'].dropna()
         vol_now = ret_full.ewm(span=20).std().iloc[-1]
         f2 = pd.concat([f, x.to_frame().T]); y2 = pd.concat([y, pd.DataFrame({'gap': [np.nan], 'ret': [np.nan]})])

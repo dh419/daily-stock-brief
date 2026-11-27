@@ -47,7 +47,7 @@ jobs:
       - name: Install Google Drive SDK
         run: |
           python -m pip install --upgrade pip
-          pip install google-api-python-client google-auth yfinance pandas numpy
+          pip install google-api-python-client google-auth yfinance pandas numpy requests
 
       - name: Determine Session
         id: determine
