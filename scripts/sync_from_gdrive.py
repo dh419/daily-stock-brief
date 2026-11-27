@@ -42,12 +42,37 @@ def is_within_grace_window(session: str, now_kst: datetime, target_kst: datetime
     return 1200 <= hm < 1285
 
 
+def extract_night_futures_pct(data):
+    """Extract overnight KOSPI200 night futures % change from Gemini App JSON (or None)."""
+    import re
+    val = data.get('nightFuturesPct')
+    if isinstance(val, (int, float)):
+        return float(val) if abs(float(val)) <= 10.0 else None
+    if isinstance(val, str):
+        m = re.search(r'([+-]?\d+(?:\.\d+)?)', val)
+        if m and abs(float(m.group(1))) <= 10.0:
+            return float(m.group(1))
+    # Fallback: look for explicit '야간선물' entry in macroCards or indicators
+    for item in data.get('macroCards', []):
+        if '야간선물' in str(item.get('title', '')):
+            m = re.search(r'([+-]?\d+(?:\.\d+)?)%', str(item.get('change', '')))
+            if m and abs(float(m.group(1))) <= 10.0:
+                return float(m.group(1))
+    for item in data.get('indicators', []):
+        if '야간선물' in str(item.get('name', '')):
+            m = re.search(r'([+-]?\d+(?:\.\d+)?)%', str(item.get('detail', '')))
+            if m and abs(float(m.group(1))) <= 10.0:
+                return float(m.group(1))
+    return None
+
+
 def apply_quant_engine(data, today_str):
     """Replace LLM-made numbers with the deterministic quant engine forecast.
     LLM narrative (desc) is kept as context; numbers come only from the model."""
+    nf_pct = extract_night_futures_pct(data)
     try:
         import quant_engine as qe
-        fc = qe.latest_forecast()
+        fc = qe.latest_forecast(night_fut_today=nf_pct)
     except Exception as e:  # never block publishing; flag it instead
         print(f"[quant] engine failed, keeping LLM numbers: {e}")
         data.setdefault('quantLogic', {})['regime'] = '⚠ 퀀트엔진 실패 - LLM 수치(참고용)'
@@ -61,8 +86,9 @@ def apply_quant_engine(data, today_str):
         t.pop('quant', None)
     data['targets'] = targets
     k = fc['kospi']
+    nf_tag = f" · 야간선물 {nf_pct:+.2f}% 반영" if k.get('night_fut_used') else " · 야간선물 미반영"
     data['quantLogic'] = {
-        'regime': f"롤링 릿지 회귀 (250일) · 일변동성 {k['vol']:.2f}%",
+        'regime': f"롤링 릿지 회귀 (250일) · 일변동성 {k['vol']:.2f}%{nf_tag}",
         'score': ' / '.join(f"{n} {fc[c]['call']} {fc[c]['p_up']*100:.0f}%" for c, n in
                            [('kospi', '코스피'), ('samsung', '삼성'), ('skhynix', '하이닉스')]),
         'bandRule': '80% 예측구간 (잔차 분포 기반 비대칭) · 콜 기준 P≥60%',

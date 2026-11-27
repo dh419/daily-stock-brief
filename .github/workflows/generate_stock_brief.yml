@@ -74,6 +74,7 @@ jobs:
       - name: Fetch JSON from Google Drive & Render Stock Brief
         env:
           GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+          KRX_API_KEY: ${{ secrets.KRX_API_KEY }}
         run: |
           python scripts/sync_from_gdrive.py --session ${{ steps.determine.outputs.session }}
 
@@ -87,4 +88,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git add docs/ hub-data.json audit_history.json robots.txt index.html
           [ -d forecasts ] && git add forecasts/ || true
+          [ -d data ] && git add data/ || true
           git diff --staged --quiet || (git commit -m "chore(stock): publish ${{ steps.determine.outputs.session }} brief [$(date +%Y-%m-%d)]" && git push)
