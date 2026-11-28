@@ -629,6 +629,7 @@ Step 3. 종목별 베타(Beta) 차등 적용 · 원점(0%) 동적 이격 및 '�
 반드시 준수할 JSON 출력 스키마:
 {{
   "reportTitle": "{now_kst.strftime('%m.%d')}({weekday_ko}) {title_suffix}",
+  "nightFuturesPct": null,
   "executiveSummary": "핵심 지수 마감/예측 요약 및 당일 핵심 관전 포인트 2줄 요약",
   "quantLogic": {{
     "regime": "적용된 체제명 (예: 변동성 경보 모드 / 매크로 이벤트 모드 / 평시 수급 모드)",

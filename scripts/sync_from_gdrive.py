@@ -88,10 +88,10 @@ def apply_quant_engine(data, today_str):
     k = fc['kospi']
     nf_tag = f" · 야간선물 {nf_pct:+.2f}% 반영" if k.get('night_fut_used') else " · 야간선물 미반영"
     data['quantLogic'] = {
-        'regime': f"롤링 릿지 회귀 (250일) · 일변동성 {k['vol']:.2f}%{nf_tag}",
+        'regime': f"v2.0 Huber+L2 앙상블 (LOO-CV·반감기120일) · 일변동성 {k['vol']:.2f}%{nf_tag}",
         'score': ' / '.join(f"{n} {fc[c]['call']} {fc[c]['p_up']*100:.0f}%" for c, n in
                            [('kospi', '코스피'), ('samsung', '삼성'), ('skhynix', '하이닉스')]),
-        'bandRule': '80% 예측구간 (잔차 분포 기반 비대칭) · 콜 기준 P≥60%',
+        'bandRule': '비대칭 조건부 방향구간 (원점 대칭 탈피) · 콜 기준 P≥60%',
         'rationale': '입력: ' + ', '.join(f"{a}={b:+.2f}" for a, b in k['inputs'].items()),
     }
     os.makedirs(os.path.join(REPO_ROOT, 'forecasts'), exist_ok=True)
