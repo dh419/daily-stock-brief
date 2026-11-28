@@ -129,22 +129,23 @@ def render_band_meter(t, session, is_holiday=False):
 
 def render_quant_section_chart(history, field_key, title, color_accent):
     """
-    Renders a quantitative SVG range-bar + actual-dot chart for a single asset (kospi / samsung / skhynix).
-    Shows full 1 month (up to 30 trading days) with compact bar spacing, sparse X-axis labels, and interactive hover/click tooltip.
+    High-visibility quantitative SVG range-bar + actual-dot chart for a single asset (kospi / samsung / skhynix).
+    Features 0.0% upside/downside regime tinting, directional bar coloring (red UP / blue DOWN / slate neutral),
+    center horizontal ticks, high-contrast actual pins (emerald hit / amber miss), and hover+click inspector.
     """
     items = history[-30:]
     if not items:
         return ""
 
-    svg_w = 880
-    svg_h = 155
-    pad_l, pad_r = 44, 16
-    pad_t, pad_b = 22, 24
+    svg_w = 920
+    svg_h = 240
+    pad_l, pad_r = 48, 18
+    pad_t, pad_b = 20, 28
     plot_w = svg_w - pad_l - pad_r
     plot_h = svg_h - pad_t - pad_b
 
-    # Determine dynamic Y scale covering all data (at least -4% to +4%)
-    min_y, max_y = -4.0, 4.0
+    # Determine dynamic Y scale covering all data (at least -5% to +5%)
+    min_y, max_y = -5.0, 5.0
     parsed_pts = []
     for h in items:
         raw = h.get(field_key, '')
@@ -153,84 +154,118 @@ def render_quant_section_chart(history, field_key, title, color_accent):
         act_str = parts[1].strip() if len(parts) > 1 else ''
         p_low, p_high = extract_range_from_str(pred_str)
         act_val = extract_single_pct(act_str)
-        
+
         for v in (p_low, p_high, act_val):
             if v is not None:
                 min_y = min(min_y, v - 0.8)
                 max_y = max(max_y, v + 0.8)
         parsed_pts.append((h.get('date', '').split(' ')[0], p_low, p_high, act_val, h.get('date', ''), pred_str, act_str))
 
-    min_y = max(-11.5, min_y)
-    max_y = min(8.5, max_y)
+    min_y = max(-14.0, float(int(min_y - 0.5)))
+    max_y = min(14.0, float(int(max_y + 0.5)))
 
     def y_pos(val):
         clamped = max(min_y, min(max_y, val))
         ratio = (clamped - min_y) / (max_y - min_y)
         return pad_t + plot_h * (1.0 - ratio)
 
+    y_zero = y_pos(0.0)
     step_x = plot_w / max(1, len(parsed_pts))
+    bar_w = min(16.0, max(9.0, step_x * 0.54))
 
-    # Grid lines (-5%, 0%, +5%)
-    grid_html = []
-    for gv in [-5.0, 0.0, 5.0]:
+    # Subtle upside/downside regime background zones + dynamic grid lines
+    grid_html = [
+        f'<rect x="{pad_l}" y="{pad_t}" width="{plot_w}" height="{max(0.0, y_zero - pad_t):.1f}" fill="rgba(239, 68, 68, 0.05)" />',
+        f'<rect x="{pad_l}" y="{y_zero:.1f}" width="{plot_w}" height="{max(0.0, (pad_t + plot_h) - y_zero):.1f}" fill="rgba(59, 130, 246, 0.05)" />',
+    ]
+    g_step = 4 if (max_y - min_y) > 16 else 2
+    g_start = int(min_y // g_step) * g_step
+    for gv_int in range(g_start, int(max_y) + 1, g_step):
+        gv = float(gv_int)
         if min_y <= gv <= max_y:
             gy = y_pos(gv)
-            stroke = "#94a3b8" if gv == 0.0 else "#1e293b"
-            width = "1.5" if gv == 0.0 else "1"
-            dash = "" if gv == 0.0 else 'stroke-dasharray="3 3"'
-            label = "0.0%" if gv == 0.0 else f"{gv:+.0f}%"
-            lbl_col = "#f8fafc" if gv == 0.0 else "#64748b"
+            is_z = (gv_int == 0)
+            stroke = "#94a3b8" if is_z else "rgba(148, 163, 184, 0.22)"
+            width = "1.7" if is_z else "0.9"
+            dash = "" if is_z else 'stroke-dasharray="3 4"'
+            label = "0.0%" if is_z else f"{gv:+.0f}%"
+            lbl_col = "#f8fafc" if is_z else "#64748b"
             grid_html.append(f'<line x1="{pad_l}" y1="{gy:.1f}" x2="{svg_w - pad_r}" y2="{gy:.1f}" stroke="{stroke}" stroke-width="{width}" {dash} />')
-            grid_html.append(f'<text x="{pad_l - 6}" y="{gy + 3:.1f}" text-anchor="end" font-size="10" fill="{lbl_col}" font-family="monospace" font-weight="bold">{label}</text>')
+            grid_html.append(f'<text x="{pad_l - 7}" y="{gy + 3.5:.1f}" text-anchor="end" font-size="10" fill="{lbl_col}" font-family="ui-monospace,monospace" font-weight="{"800" if is_z else "600"}">{label}</text>')
+    grid_html.append(f'<line x1="{pad_l}" y1="{y_zero:.1f}" x2="{svg_w - pad_r}" y2="{y_zero:.1f}" stroke="#94a3b8" stroke-width="1.7" />')
 
     bars_html = []
     trend_pts = []
     total_pts = len(parsed_pts)
+    last_tip = "막대에 마우스를 올리거나 터치하면 상세 수치가 표시됩니다."
     for idx, (d_lbl, p_low, p_high, act_val, full_date, pred_str, act_str) in enumerate(parsed_pts):
         cx = pad_l + step_x * (idx + 0.5)
         if act_val is not None:
             ay = y_pos(act_val)
             trend_pts.append(f"{cx:.1f},{ay:.1f}")
-        
-        is_hit = (act_val is not None and p_low is not None and p_high is not None and p_low <= act_val <= p_high)
-        dot_col = "#10b981" if is_hit else "#ef4444"
-        tooltip_txt = f"{full_date} | 예측: {pred_str} / 실제: {act_str} ({'⭕ 적중' if is_hit else '❌ 이탈'})"
-        safe_tip = tooltip_txt.replace("'", "\\'")
 
-        # Group with interactive click/hover
-        bars_html.append(f'<g style="cursor:pointer;" onclick="showChartTip(this, \'{safe_tip}\')">')
+        is_band_hit = (act_val is not None and p_low is not None and p_high is not None and p_low <= act_val <= p_high)
+        # Directional color coding: UP (red), DOWN (blue), Neutral/straddling (slate)
+        if p_low is not None and p_high is not None:
+            if p_low >= 0 or (p_low + p_high) / 2.0 > 0.35 and p_low > -0.25:
+                bar_fill, bar_stroke = "rgba(239, 68, 68, 0.42)", "#ef4444"
+                pred_dir = 1
+            elif p_high <= 0 or (p_low + p_high) / 2.0 < -0.35 and p_high < 0.25:
+                bar_fill, bar_stroke = "rgba(59, 130, 246, 0.42)", "#3b82f6"
+                pred_dir = -1
+            else:
+                bar_fill, bar_stroke = "rgba(100, 116, 139, 0.32)", "#64748b"
+                pred_dir = 0
+        else:
+            bar_fill, bar_stroke, pred_dir = f"{color_accent}55", color_accent, 0
+
+        dir_hit = (act_val is not None and pred_dir != 0 and ((pred_dir > 0 and act_val > 0) or (pred_dir < 0 and act_val < 0)))
+        is_hit = is_band_hit or dir_hit
+        dot_col = "#10b981" if is_hit else ("#94a3b8" if pred_dir == 0 and not is_band_hit else "#f59e0b")
+        status_lbl = "⭕ 적중" if is_hit else ("― 유보" if pred_dir == 0 else "❌ 이탈")
+        tooltip_txt = f"{full_date} | 예측: {pred_str} / 실제: {act_str} ({status_lbl})"
+        safe_tip = tooltip_txt.replace("'", "\\'")
+        if idx == total_pts - 1:
+            last_tip = tooltip_txt
+
+        bars_html.append(f'<g style="cursor:pointer;" onmouseenter="showChartTip(this, \'{safe_tip}\')" onclick="showChartTip(this, \'{safe_tip}\')">')
         bars_html.append(f'<title>{tooltip_txt}</title>')
-        # Invisible hit area with highlight class for interactive touch
         bars_html.append(f'<rect class="hl-col" x="{cx - step_x/2:.1f}" y="{pad_t}" width="{step_x:.1f}" height="{plot_h}" fill="transparent" rx="2" />')
-        
-        # Draw Predicted Band Bar (compact width: 10px for 1 month)
+
         if p_low is not None and p_high is not None:
             y_top = y_pos(p_high)
             y_bot = y_pos(p_low)
-            bar_h = max(3.0, y_bot - y_top)
-            bars_html.append(f'<rect x="{cx - 5:.1f}" y="{y_top:.1f}" width="10" height="{bar_h:.1f}" rx="2" fill="{color_accent}" opacity="0.38" stroke="{color_accent}" stroke-width="1" />')
+            bar_h = max(4.0, y_bot - y_top)
+            y_mid = y_pos((p_low + p_high) / 2.0)
+            bars_html.append(f'<rect x="{cx - bar_w/2:.1f}" y="{y_top:.1f}" width="{bar_w:.1f}" height="{bar_h:.1f}" rx="3" fill="{bar_fill}" stroke="{bar_stroke}" stroke-width="1.3" />')
+            bars_html.append(f'<line x1="{cx - bar_w/2 - 1:.1f}" y1="{y_mid:.1f}" x2="{cx + bar_w/2 + 1:.1f}" y2="{y_mid:.1f}" stroke="#ffffff" stroke-opacity="0.85" stroke-width="1.8" />')
 
-        # Draw Actual Close Dot
         if act_val is not None:
             ay = y_pos(act_val)
-            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="3.8" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.2" />')
+            bars_html.append(f'<circle cx="{cx:.1f}" cy="{ay:.1f}" r="4.6" fill="{dot_col}" stroke="#0b0f19" stroke-width="1.6" />')
 
-        # Sparse X-axis date labels (every 5th item + first & last)
-        if idx == 0 or idx == total_pts - 1 or idx % 5 == 0:
-            bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 6}" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="monospace">{d_lbl}</text>')
-        
+        if idx == 0 or idx == total_pts - 1 or idx % 3 == 0:
+            bars_html.append(f'<text x="{cx:.1f}" y="{svg_h - 8}" text-anchor="middle" font-size="9.5" font-weight="600" fill="#94a3b8" font-family="ui-monospace,monospace">{d_lbl}</text>')
+
         bars_html.append('</g>')
 
     trend_line_html = ""
     if len(trend_pts) > 1:
-        trend_line_html = f'<polyline fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5" points="{" ".join(trend_pts)}" />'
+        trend_line_html = f'<polyline fill="none" stroke="rgba(148, 163, 184, 0.35)" stroke-width="1.4" points="{" ".join(trend_pts)}" />'
 
     return f"""
-      <div style="margin-bottom:14px; background:{color_accent}22; border:1px solid {color_accent}; border-radius:12px; padding:10px 14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <span style="font-size:0.9rem; font-weight:800; color:#ffffff;">{title}</span>
-          <span class="chart-tip-bar" style="font-size:0.74rem; color:#e2e8f0; font-weight:600;"></span>
+      <div style="margin-bottom:14px; background:{color_accent}22; border:1px solid {color_accent}; border-radius:12px; padding:12px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:6px;">
+          <span style="font-size:0.92rem; font-weight:800; color:#ffffff;">{title}</span>
+          <span style="display:inline-flex; flex-wrap:wrap; gap:8px; font-size:0.71rem; color:#cbd5e1; align-items:center;">
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(239,68,68,0.65);border:1px solid #ef4444;vertical-align:middle;margin-right:3px;"></i>상승</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(59,130,246,0.65);border:1px solid #3b82f6;vertical-align:middle;margin-right:3px;"></i>하락</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(100,116,139,0.5);border:1px solid #64748b;vertical-align:middle;margin-right:3px;"></i>유보</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;border:1px solid #fff;vertical-align:middle;margin-right:3px;"></i>적중</span>
+            <span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;border:1px solid #fff;vertical-align:middle;margin-right:3px;"></i>이탈</span>
+          </span>
         </div>
+        <div class="chart-tip-bar" style="font-size:0.75rem; color:#e2e8f0; font-weight:600; background:rgba(15,23,42,0.72); border:1px solid rgba(148,163,184,0.2); border-radius:6px; padding:5px 9px; margin-bottom:8px;">{last_tip}</div>
         <svg viewBox="0 0 {svg_w} {svg_h}" style="width:100%; height:auto; display:block;" preserveAspectRatio="xMidYMid meet">
           {''.join(grid_html)}
           {trend_line_html}
